@@ -5,3 +5,8 @@ dados/*
 *.sqlite-*
 *.log
 .env
+.env.*
+!.env.example
+dist/
+.vercel/
+backups/

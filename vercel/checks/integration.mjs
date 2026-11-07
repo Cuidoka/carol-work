@@ -148,7 +148,12 @@ test('Versão Neon: contrato HTTP e SQL em PostgreSQL/PGlite descartável', asyn
     server.listen(0, '127.0.0.1'); await once(server, 'listening');
     try {
       const base = `http://127.0.0.1:${server.address().port}`;
-      for (const asset of ['/', '/app.js', '/styles.css', '/favicon.svg']) assert.equal((await fetch(base + asset)).status, 200);
+      const html = await (await fetch(base)).text();
+      assert.match(html, /id="root"/);
+      const assets = [...html.matchAll(/(?:src|href)="(\/assets\/[^\"]+)"/g)].map(match => match[1]);
+      assert.ok(assets.some(asset => asset.endsWith('.js')));
+      assert.ok(assets.some(asset => asset.endsWith('.css')));
+      for (const asset of ['/', '/favicon.svg', ...assets]) assert.equal((await fetch(base + asset)).status, 200);
       for (const asset of ['/lib/database.mjs', '/.env.local', '/database/schema.sql']) assert.equal((await fetch(base + asset)).status, 404);
       const result = await fetch(base + '/api/musicas');
       assert.equal(result.status, 200);
@@ -168,11 +173,5 @@ test('Endpoint publicado falha de forma explícita sem DATABASE_URL', async () =
     assert.match((await result.json()).erro, /configuração/);
   } finally {
     if (savedUrl !== undefined) process.env.DATABASE_URL = savedUrl;
-  }
-});
-
-test('Interface permanece idêntica à versão local', async () => {
-  for (const file of ['public/index.html', 'public/app.js', 'public/styles.css', 'public/favicon.svg']) {
-    assert.deepEqual(await readFile(new URL(`../${file}`, import.meta.url)), await readFile(new URL(`../../${file}`, import.meta.url)));
   }
 });

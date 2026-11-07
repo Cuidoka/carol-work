@@ -1,14 +1,14 @@
 # SETLIST — Arquitetura técnica, banco de dados e API
 
-**Natureza deste documento:** especificação técnica do MVP, implementada em 01/11/2026. A pasta inicial só continha documentação; o usuário autorizou criar o código. Consulte o histórico para evidências. O código real deve ser consultado antes de modificar funcionalidades.
+**Atualização em 07/11/2026:** o usuário autorizou converter todo o front-end para React + Tailwind + Vite. A interface compartilhada está em `src/`; `index.html` é a entrada e o build gera `dist/`. O servidor local e o preview Neon entregam esse mesmo build. A API e o modelo relacional descritos abaixo continuam válidos. As antigas interfaces `public/app.js`, `public/index.html`, `public/styles.css` e suas cópias em `vercel/public/` foram removidas após a conversão. Consulte o histórico para evidências.
 
-**Versão online autorizada posteriormente:** este documento descreve a aplicação local da raiz, que continua com SQLite e sem dependências externas. A pasta independente `vercel/` foi adaptada para **Neon/PostgreSQL**, por escolha explícita do usuário. Seu contrato de rotas e modelo N:N são equivalentes; o schema e a conexão são próprios. Consulte `vercel/README.md`. Não aplicar o schema PostgreSQL ao banco SQLite nem presumir que os dados são compartilhados.
+**Versão online:** `vercel/` contém o back-end **Neon/PostgreSQL** e é um workspace npm. A configuração de deploy agora está em `vercel.json` na **raiz**, com entrada em `api/index.mjs`. Root Directory na Vercel deve ser a raiz do repositório, não `vercel/`. O front-end React é compartilhado, mas os schemas e os dados dos dois bancos são separados.
 
 ## 1. Arquitetura adotada
 
 ```text
 NAVEGADOR
-  public/index.html + styles.css + app.js
+  React em src/ + Tailwind → build Vite em dist/
                   │ fetch HTTP /api/...
                   ▼
 BACK-END NODE.JS
@@ -20,7 +20,7 @@ BANCO SQLITE
   schema em database/schema.sql
 ```
 
-**Stack existente:** HTML5, CSS3, JavaScript sem framework, Node.js `node:http`/`node:sqlite`/`node:fs`/`node:path` e SQLite local. `package.json` define `npm start` e requer Node >=22.13.0. Recomendado Node.js 24 LTS. **Não migrar automaticamente para React, Express, MySQL, PostgreSQL ou ORM**: a escolha atual já satisfaz o enunciado e reduz dependências.
+**Stack atual:** React, React DOM, Tailwind CSS e Vite no front-end; Node.js `node:http`/`node:sqlite`/`node:fs`/`node:path` e SQLite local. O workspace online usa o driver oficial Neon. Requer Node.js **24.x** e npm. `npm ci` instala as dependências dos workspaces; `npm start` compila a interface e inicia SQLite; `npm run dev` inicia Vite com atualização da interface e a API local no mesmo processo. A troca do front-end foi autorizada expressamente pelo usuário; não adicionar novos frameworks sem necessidade.
 
 **Persistência:** arquivo SQLite no diretório `dados/`, ignorado pelo Git. Criado automaticamente ao iniciar o servidor, juntamente com tabelas ainda inexistentes.
 
@@ -32,10 +32,16 @@ SETLIST/
 ├── README.md                         # instruções de execução existentes
 ├── package.json                      # scripts e versão mínima do Node
 ├── server.js                         # API e acesso ao SQLite
-├── public/
-│   ├── index.html                    # interface
-│   ├── styles.css                    # apresentação
-│   └── app.js                        # eventos e fetch HTTP
+├── index.html                       # entrada do Vite
+├── src/                             # componentes React, hook, cliente HTTP e Tailwind
+├── public/favicon.svg               # ativo estático
+├── dist/                            # build gerado e ignorado pelo Git
+├── lib/static.cjs                   # entrega restrita do build
+├── scripts/dev.mjs                  # Vite e API local
+├── vite.config.mjs
+├── api/index.mjs                     # entrada Neon na Vercel
+├── vercel.json                      # deploy na raiz
+├── vercel/                          # workspace da API Neon e testes PostgreSQL
 ├── database/
 │   ├── schema.sql                    # DDL do banco
 │   ├── consultas.sql                 # consultas exigidas

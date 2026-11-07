@@ -11,7 +11,7 @@ Antes de tocar no código, leia `docs/00_COMECE_AQUI_CODEX.md`, `docs/01_PRODUTO
 1. **Não invente fatos.** Distinga o que está no código, o que você testou, o que é inferência e o que ainda falta verificar.
 2. **Não reescreva o projeto por padrão.** Identifique o que já existe; preserve funcionalidades atuais ao corrigir falhas.
 3. **Não faça expansão de escopo** (login, IA, streaming, upload, Spotify, hospedagem, dashboards complexos) sem solicitação explícita.
-4. **Não altere a stack sem motivo demonstrado.** O projeto atual usa Node.js nativo + SQLite + HTML/CSS/JS, sem dependências npm externas.
+4. **Não altere a stack sem motivo demonstrado.** Em 07/11/2026, o usuário autorizou converter todo o front-end para **React + Tailwind + Vite**. A interface única fica em `src/` e é compilada em `dist/`. O back-end local continua Node.js nativo + SQLite; o back-end online fica em `vercel/` e usa Neon/PostgreSQL. O projeto usa npm workspaces e um único `package-lock.json` na raiz. Preserve os requisitos acadêmicos ao alterar essa arquitetura.
 5. **Não apague ou substitua dados reais.** O arquivo `dados/*.sqlite` pode conter registros importantes. Use cópias ou bancos temporários para testes destrutivos. Não versionar arquivos de banco.
 6. **Preserve o modelo de dados** ou proponha migração explícita e segura; habilite as FKs e utilize SQL parametrizado.
 7. **Após mudar comportamento, teste.** Na resposta, relate o comando, cenário e resultado observados; o que não for testado deve estar explícito.

@@ -4,6 +4,7 @@ const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');
 const { DatabaseSync } = require('node:sqlite');
+const { serveStatic } = require('./lib/static.cjs');
 
 class HttpError extends Error {
   constructor(status, message) { super(message); this.status = status; }
@@ -195,14 +196,7 @@ function createApp(options = {}) {
         return json(res, 200, details(setlistId));
       }
       if (route.startsWith('/api/')) throw new HttpError(404, 'Rota não encontrada.');
-      const assets = { '/': ['index.html', 'text/html'], '/index.html': ['index.html', 'text/html'],
-        '/styles.css': ['styles.css', 'text/css'], '/app.js': ['app.js', 'text/javascript'],
-        '/favicon.svg': ['favicon.svg', 'image/svg+xml'] };
-      if (!assets[route] || !['GET', 'HEAD'].includes(method)) throw new HttpError(404, 'Página não encontrada.');
-      const [file, type] = assets[route];
-      const content = fs.readFileSync(path.join(__dirname, 'public', file));
-      res.writeHead(200, { 'Content-Type': `${type}; charset=utf-8`, 'Cache-Control': 'no-cache' });
-      res.end(method === 'HEAD' ? undefined : content);
+      if (!serveStatic(req, res)) throw new HttpError(404, 'Página não encontrada.');
     } catch (error) {
       if (!error.status) console.error(error);
       json(res, error.status ?? 500, { erro: error.status ? error.message : 'Não foi possível concluir a operação.' });

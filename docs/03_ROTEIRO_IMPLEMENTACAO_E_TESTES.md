@@ -2,6 +2,8 @@
 
 ## 1. Estratégia
 
+**Atualização React/Tailwind — 07/11/2026:** após a conversão autorizada, instale com `npm ci` na raiz. `npm start` compila e executa a versão local; `npm run dev` abre o desenvolvimento Vite em 5173 com proxy para a API. `npm run test:all` compila e executa as suítes SQLite e PostgreSQL/PGlite. Os cenários de aceitação abaixo continuam válidos. Para testar com comandos diretos do Node, compile primeiro com `npm run build`.
+
 **Entrega mínima antes de qualquer melhoria visual:** funcionar o CRUD, a ligação entre as três tabelas, pelo menos um JOIN, uma agregação SQL e a persistência real dos dados. Na auditoria de 01/11/2026 não havia código na pasta. O usuário confirmou e autorizou a primeira implementação. Os itens abaixo são um roteiro; as evidências de execução estão no histórico, sem presumir que toda a matriz já foi testada visualmente.
 
 ### Etapa 0 — Inspecionar e diagnosticar (prioridade máxima)

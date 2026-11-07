@@ -1,0 +1,8 @@
+dados
+backups
+.env*
+tests
+docs
+vercel/checks
+node_modules
+*.sqlite*

@@ -1,0 +1,28 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Segoe UI", Arial, sans-serif;
+  --color-canvas: #f6f7f3;
+  --color-ink: #202c27;
+  --color-muted: #737d76;
+  --color-line: #e5e9e1;
+  --color-acid: #d8f36a;
+  --color-forest: #18221e;
+}
+
+@layer base {
+  body { @apply m-0 bg-canvas font-sans text-sm text-ink antialiased; }
+  button, input, select { font: inherit; }
+  button { @apply cursor-pointer disabled:cursor-default; }
+  button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible {
+    outline: 3px solid #84a13c;
+    outline-offset: 3px;
+  }
+  dialog::backdrop { background: #14251cb8; backdrop-filter: blur(3px); }
+  ::selection { background: #d8f36a; color: #18221e; }
+}
+
+@layer components {
+  .field { @apply block w-full rounded-lg border border-line bg-white px-3 py-2.5 text-sm text-ink placeholder:text-gray-400 disabled:bg-gray-50; }
+  .field-label { @apply block text-xs font-semibold; }
+}

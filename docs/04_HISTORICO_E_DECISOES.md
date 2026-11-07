@@ -227,3 +227,80 @@ O console do navegador retornou **nenhum erro ou aviso** nas inspeções finais.
 **Próximo passo externo:** conectar/criar Neon no painel Vercel, executar `vercel/database/schema.sql` no banco selecionado, confirmar DATABASE_URL nos ambientes desejados e fazer deploy/redeploy. Depois executar o teste por URL e os fluxos no navegador. A conexão contém senha e não deve ser enviada no chat ou versionada.
 
 **Status:** versão local preservada; versão Vercel preparada para **Neon**, validada localmente; configuração e validação online continuam pendentes. As instruções Turso da entrada histórica anterior foram substituídas pelo README atual, sem apagar o registro da decisão anterior.
+
+## 2026-11-07 — Revisão dos requisitos e guia para a apresentação
+
+**Solicitação:** o usuário pediu confirmar todos os requisitos e receber uma explicação para apresentar à professora sobre funcionamento, CRUD, banco de dados, front-end e back-end.
+
+**Inspeção:** relidos AGENTS, README e documentos numerados de escopo, arquitetura, roteiro e histórico; conferidos os arquivos atuais de servidor, front-end, schemas, consultas, contratos, dependências, scripts e testes das duas versões. O código continua com versão local SQLite na raiz e versão Neon/PostgreSQL isolada em `vercel/`. O frontend de ambas continua idêntico, conforme teste byte a byte.
+
+**Verificação automatizada realmente executada:**
+
+- `node --version`: **v24.22.1**.
+- `node --test`, na raiz, com HTTP local autorizado: **10 passaram, 0 falhas**. CRUD, integridade, vínculos, ordem, consultas, cascatas e persistência confirmados em bancos descartáveis.
+- `node scripts/check.mjs`, em `vercel/`: **passou**, limitado a sintaxe, arquivos estáticos e configuração básica.
+- `node --test checks/integration.mjs`, em `vercel/`: **11 passaram, 0 falhas**. SQL executado em PostgreSQL/PGlite temporário; inclui CRUD, catálogo de constraints, agregações, rollback após erro SQL real, persistência, cascatas e smoke por HTTP local.
+
+**Nova execução no navegador, sem tocar no banco principal:**
+
+Instância iniciada por `node server.js` com `PORT=3005`, `SETLIST_SEED=0` e banco `C:/Users/siltu/AppData/Local/Temp/setlist-revisao-20261107-ff529848-90e0-44be-a646-97bd27173b6b.sqlite`.
+
+1. Criada `Ensaio A`, artista `Banda A`, duração 03:20. Editados título para `Ensaio A editada` e duração para 04:10. Criada `Ensaio B`, artista `Banda B`, duração 03:15. As linhas apareceram na biblioteca.
+2. Criada setlist `Ensaio da apresentação`, evento `Sala de aula`; adicionadas as duas faixas, movida B para cima e editado nome para `Ensaio validado`. Após recarregar: sequência B → A, evento preservado, **2 músicas / 07:25**.
+3. `node database/consultar.js` apontando para esse arquivo: JOIN retornou as duas faixas nas posições 1 e 2; COUNT/SUM retornou **2 / 445 segundos**; COUNT da biblioteca retornou **2**. `PRAGMA foreign_key_check` retornou `[]`; `PRAGMA integrity_check` retornou `ok`.
+4. Encerrado e iniciado novamente o processo usando o mesmo banco; navegador recarregado confirmou nome, evento, ordem e total 07:25.
+5. Removida A do repertório por `×`; continuou na biblioteca e o repertório ficou com B. Excluída B da biblioteca com confirmação final; o repertório ficou vazio e A foi preservada. A foi readicionada ao repertório, depois a setlist foi excluída com confirmação final; A permaneceu na biblioteca após recarregar.
+6. Consulta direta de leitura no SQLite após essas operações confirmou **1 música (`Ensaio A editada`, 250 segundos), 0 setlists, 0 vínculos**, e `foreign_key_check=[]`. Console do navegador: nenhum erro/aviso retornado nas inspeções finais. A instância descartável foi encerrada ao terminar; não foram executadas mutações em `dados/setlist.sqlite`.
+7. Captura do estado de 2 faixas / 07:25 salva em `C:/Users/siltu/.codex/visualizations/2026/11/01/01a19551-2619-7be3-8db5-f722e225d807/revisao-2026-11-07.jpg`.
+
+**Requisitos:** todos os itens do enunciado registrado no documento 01 estão implementados e demonstráveis na versão local: 3 tabelas relacionadas, PK/FK, CRUD, JOIN, agregação por COUNT/SUM e integração real. Não é necessário implementar subconsulta adicional, pois o enunciado pede agregação OU subconsulta. Hospedagem online foi uma solicitação posterior, não requisito original.
+
+**Alterações:** criado `docs/05_GUIA_PARA_APRESENTAR_E_RESPONDER.md` com explicação fiel ao código, falas sugeridas, exemplos SQL, mapa CRUD/HTTP/SQL, relação N:N, exclusões, transações, diferenças entre versões e roteiro de ensaio. Atualizados os links no README e no documento 00 e o resumo de validação do documento 00, que ainda remetia à etapa anterior às exclusões visuais. Somente documentação alterada; não foi necessária correção funcional.
+
+**Limites:** não foram feitos novos testes de responsividade, outros navegadores, carga ou múltiplos usuários. Não foi realizada validação em outra máquina, ensaio oral do aluno ou conexão ao Neon remoto. Não foram encontrados `.env.local` ou `.vercel/project.json` na pasta da segunda versão; isso não prova inexistência de um deploy externo, apenas ausência desses vínculos locais. Nenhuma URL externa foi fornecida/validada nesta revisão. Não declarar a infraestrutura online pronta com base nos testes PGlite.
+
+**Conclusão:** versão local tecnicamente apta para demonstração acadêmica em 16/11/2026 no ambiente verificado; todos os requisitos originais atendidos. Falta ao aluno ensaiar a explicação e conferir a máquina da apresentação. A segunda versão permanece preparada e testada localmente, com validação online pendente. Nenhuma falha funcional encontrada nos cenários executados.
+
+## 2026-11-07 — Conversão integral do front-end para React + Tailwind + Vite
+
+**Autorização:** o usuário pediu reformular todo o projeto usando frameworks, principalmente React e Tailwind. Essa decisão substitui a restrição anterior a um front-end sem frameworks. Os requisitos acadêmicos, os dois bancos e os contratos das APIs foram preservados.
+
+**Proteção e reversibilidade:** criado `backups/pre-react-2026-11-07.zip` com o código e a documentação anteriores, sem `node_modules`, bancos, `.git` ou arquivos `.env`. A pasta de backups é ignorada pelo Git. Não foram apagados ou substituídos registros de `dados/setlist.sqlite`; os testes usaram arquivos temporários. Os schemas SQLite e PostgreSQL e a lógica SQL/CRUD permaneceram sem migração de dados.
+
+### Arquitetura resultante
+
+- Uma única interface React em `src/`, usada pelos back-ends SQLite e Neon. Removidas a implementação manual `public/app.js`/`index.html`/`styles.css` e as cópias de `vercel/public/`. `public/` mantém o favicon.
+- Componentes em `src/components/`: biblioteca, lista/detalhe de repertórios, edição, diálogo, ícones e botões. `src/App.jsx` compõe as telas e as ações. React controla a renderização, sem montar strings de HTML para os registros.
+- `src/hooks/useSetlistData.js` centraliza carregamento, seleção e mutações; controla concorrência das respostas para evitar uma seleção antiga sobrescrever a atual. `src/lib/api.mjs` trata HTTP/JSON e erros; `src/lib/format.mjs` concentra conversão/validação de duração.
+- Tailwind integrado ao Vite pelo plugin oficial. Tokens e estilos de base em `src/styles.css`; aparência e responsividade por classes nos componentes. Mantida a identidade visual verde/escura.
+- `index.html` na raiz é a entrada do Vite; `dist/` contém JS/CSS compilados e não é versionado. `lib/static.cjs` entrega somente o HTML, favicon e assets permitidos do build; fontes, bancos e segredos permanecem inacessíveis. `server.js` alterado somente na entrega de arquivos estáticos. O preview Neon usa esse mesmo helper.
+- Projeto organizado como **npm workspaces**: raiz e `vercel/`, com `package-lock.json` único na raiz. Dependências fixadas: React/React DOM **19.3.1**, Tailwind e plugin Vite **4.3.5**, Vite **8.3.6**, plugin React **6.2.1**. Driver Neon e PGlite mantidos no workspace.
+- `scripts/dev.mjs` inicia API SQLite e Vite no mesmo processo; o proxy `/api` acompanha `PORT`. Front-end tem atualização pelo Vite; alterações no backend exigem reiniciar esse comando. Não é necessário iniciar dois terminais para desenvolver a interface.
+- Na Vercel, a configuração passou à **raiz do repositório**: `vercel.json`, Framework Vite, saída `dist` e entrada `api/index.mjs` reexportando a função Neon. A configuração antiga de Root Directory `vercel/` foi removida e não deve ser usada. Não há publicação realizada nesta sessão.
+
+### Execução e documentação
+
+- Instalar na raiz com `npm ci`.
+- `npm start` executa o build antes de iniciar Node/SQLite em 3000.
+- `npm run dev` abre Vite em 5173, com proxy para a API local.
+- `npm run test:all` compila e roda as duas suítes.
+- `npm run db:init:neon` e `npm run preview:neon` operam no workspace Neon; preview depende do build já feito.
+- Atualizados `AGENTS.md`, `README.md`, documentos 00/01/02/03/05 e `vercel/README.md`, inclusive a explicação para a professora sobre componentes, estado, hooks, Tailwind e build. As entradas históricas anteriores foram preservadas.
+
+### Verificações executadas e resultados
+
+1. Instalação e build reais. npm foi invocado pelo runtime disponível (`pnpm dlx npm@11.6.2`) por ausência de npm no PATH. Uma tentativa de `npm ci` com Vite aberto encontrou `EPERM` no binário Lightning CSS em uso no Windows. Encerrado o Vite e repetido o comando: **instalação reproduzível passou**, 38 pacotes instalados. Não se alterou código para contornar o bloqueio de arquivo.
+2. `npm run test:all`, executado com esse npm: **passou**. O pretest compilou o front-end com Vite, gerando HTML e assets JS/CSS; os testes foram executados em seguida.
+3. Suíte local: **13 passaram, 0 falhas**. Mantidos os 10 testes de integração SQLite, adaptando a verificação de assets para ler o HTML do build React e buscar os arquivos com hash. Acrescentados 3 testes da conversão/formatação de duração (limites, valores inválidos e total 07:25).
+4. Suíte PostgreSQL/PGlite: **10 passaram, 0 falhas**. CRUD, catálogo de constraints, JOIN/agregações, ordem, rollback após erro real, cascatas, persistência, erros e smoke por HTTP local continuaram passando. A antiga comparação entre duas cópias de frontend foi removida, pois agora ambos entregam o mesmo build físico.
+5. `node vercel/scripts/check.mjs`: passou, verificando sintaxe, build existente e configuração básica na raiz. Continua sem equivaler a build/deploy real na Vercel.
+6. Navegador com build de produção e backend SQLite em **3006**, banco temporário `C:/Users/siltu/AppData/Local/Temp/setlist-react-5852d401-a7f1-459b-b577-0630d06668b4.sqlite`: duração 00:00 recusada no formulário; criada React A com 03:20 e editada para `React A editada` com 04:10; criada React B com 03:15; criada setlist `Show React`, evento Campus; adicionadas as duas faixas; B movida para cima; nome alterado para `Show React validado`; recarregamento preservou sequência B → A e total **07:25**.
+7. Na mesma interface React: removido o vínculo de A, que continuou na biblioteca; testada busca; aberto/cancelado/reaberto diálogo e confirmada exclusão de B (que estava na setlist); repertório ficou vazio. A foi incluída novamente e a setlist foi excluída com confirmação; A continuou na biblioteca após recarregar. Consulta direta SQLite confirmou **1 música, 0 setlists, 0 vínculos**, com `foreign_key_check=[]`.
+8. O processo da API em 3006 foi encerrado e reiniciado com o mesmo arquivo; React recuperou a música remanescente com título/duração corretos. Dados da demonstração principal não foram utilizados nesses testes.
+9. Layout inspecionado no navegador em **390×844** e **1366×900**, incluindo biblioteca, busca e diálogo de exclusão. Sem transbordamento horizontal do documento nas dimensões conferidas. Console retornou **nenhum erro/aviso** durante as inspeções.
+10. `node scripts/dev.mjs` executado com outro banco descartável e API em **3007**: Vite respondeu em **5173**, a interface React carregou os 5 exemplos e o repertório inicial pelo proxy, sem erros/avisos observados no console. O processo foi encerrado antes da reinstalação de dependências.
+11. Captura final salva em `C:/Users/siltu/.codex/visualizations/2026/11/01/01a19551-2619-7be3-8db5-f722e225d807/setlist-react-tailwind.jpg`.
+
+**Limites:** não foram validados Neon remoto, deploy/routing reais da Vercel, múltiplos usuários, outros navegadores ou auditoria completa de acessibilidade. A aplicação foi reformulada e conferida localmente; publicação continua pendente de conta/banco/variáveis e teste na URL real. O roteiro de apresentação precisa ser ensaiado novamente porque a explicação do frontend mudou.
+
+**Status:** front-end convertido para React/Tailwind nas duas versões por uma fonte única; build, instalação e 23 testes automatizados aprovados, com fluxos locais confirmados no navegador. Requisitos SQL e integração preservados. Instâncias descartáveis encerradas ao terminar.

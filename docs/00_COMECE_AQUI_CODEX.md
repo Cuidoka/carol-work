@@ -1,65 +1,52 @@
-# SETLIST — Comece aqui (guia para trabalhar com o Codex)
+# SETLIST — Comece aqui
 
-**Projeto:** SETLIST — Organizador de Repertórios Musicais  
-**Tipo:** trabalho acadêmico de desenvolvimento de software com banco de dados  
-**Data de apresentação:** 16/11/2026  
-**Prioridade:** cumprir integralmente os itens do enunciado, sem transformar o protótipo em produto comercial.
+**Apresentação:** 16/11/2026. **Prioridade:** atender ao enunciado acadêmico registrado no documento 01.
 
-## 1. Para que serve esta documentação
+## Estado atual — 07/11/2026
 
-Este conjunto de arquivos serve como **fonte de contexto e critérios verificáveis** para um agente de programação. Não é uma ordem para reconstruir o projeto do zero. Antes de alterar qualquer coisa, o agente deve ler e conferir os arquivos reais do repositório.
+O usuário autorizou a reformulação do front-end para **React + Tailwind + Vite**. Há uma única interface em `src/`, compilada para `dist/` e usada por dois back-ends:
 
-Documentos de referência:
+- Local: `server.js`, HTTP Node.js nativo e SQLite.
+- Online: `api/index.mjs` → workspace `vercel/`, funções Node.js e Neon/PostgreSQL.
 
-1. `docs/01_PRODUTO_E_ESCOPO.md` — problema, objetivo, fluxos, funcionalidades, limites e critérios de aceitação.
-2. `docs/02_ARQUITETURA_BANCO_E_API.md` — tecnologia atual, modelo relacional, regras de dados, rotas e SQL.
-3. `docs/03_ROTEIRO_IMPLEMENTACAO_E_TESTES.md` — fases, tarefas, testes e roteiro de apresentação.
-4. `AGENTS.md` — regras permanentes para o Codex quando trabalhar neste repositório.
-5. `docs/04_HISTORICO_E_DECISOES.md` — registro de decisões, alterações e pendências verificadas.
+Os schemas e os dados dos bancos continuam separados. O modelo N:N, o CRUD e os requisitos acadêmicos foram preservados. A publicação Vercel ainda exige validação online; testes PGlite não equivalem a testar o Neon real.
 
-**Hierarquia de fontes:** enunciado da professora e decisões explícitas do usuário > documentação de escopo > código/schema reais para descrever o estado atual > suposições do agente. Se a documentação e o código discordarem, identificar e relatar a divergência antes de mudar comportamento.
+O código anterior foi arquivado em `backups/pre-react-2026-11-07.zip`, sem dados reais ou credenciais. O histórico registra a primeira implementação, as auditorias, a troca de Turso para Neon e a migração React; registros antigos descrevem os estados daquela data, não a estrutura atual.
 
-## 2. Estado verificado em 01/11/2026
+## Leitura e autoridade
 
-**Correção da premissa original:** a pasta recebida continha somente os seis documentos Markdown, sem código nem banco. O usuário confirmou isso e autorizou a implementação integral. As descrições anteriores de código recebido e testes na preparação dos documentos não constituíam evidência desta pasta. A primeira implementação foi criada nesta sessão, seguindo o escopo abaixo.
+Leia `AGENTS.md`, este guia e os documentos:
 
-Agora estão implementados:
+1. `01_PRODUTO_E_ESCOPO.md`: enunciado, funcionalidades e limites.
+2. `02_ARQUITETURA_BANCO_E_API.md`: arquitetura atual, tabelas e contrato das rotas.
+3. `03_ROTEIRO_IMPLEMENTACAO_E_TESTES.md`: matriz de aceitação e apresentação.
+4. `04_HISTORICO_E_DECISOES.md`: decisões e evidências reais.
+5. `05_GUIA_PARA_APRESENTAR_E_RESPONDER.md`: explicações para estudar e ensaiar.
 
-- Front-end estático em `public/index.html`, `public/styles.css` e `public/app.js`.
-- Back-end HTTP em `server.js`, com módulos nativos do Node.js.
-- Banco SQLite: criação em `database/schema.sql` e arquivo local `dados/setlist.sqlite` gerado em tempo de execução.
-- Consultas demonstrativas em `database/consultas.sql`.
-- Rotas de músicas, setlists, itens do repertório e reordenação.
-- Dados fictícios iniciais, inseridos apenas quando o arquivo do banco é criado pela primeira vez. Esvaziar a biblioteca não faz os exemplos retornarem.
+Enunciado e decisões explícitas do usuário prevalecem sobre documentação antiga. Consulte o código antes de mudar comportamento. Não presumir que uma auditoria anterior prova o estado atual após novas mudanças.
 
-**Validação desta implementação:** `node --test` passou nos 10 testes com SQLite temporário, incluindo CRUD HTTP, vínculos, cascatas, reordenação, JOIN, COUNT/SUM, validações e fechamento/reabertura do servidor e banco. No navegador integrado foram verificados cadastro e edição, inclusão de músicas, reordenação, total 07:25, recarregamento, busca e layout em 390 e 1366 px. Exclusões foram executadas pela API nos testes; no navegador foi conferida a confirmação e seu cancelamento. Consulte o histórico para limites da evidência.
+## Executar
 
-## 3. Como abrir e executar
+Node.js **24.x** e npm, a partir da raiz:
 
-Requisitos: Node.js `>=22.13.0`; recomendado Node.js 24 LTS. O código atual **não precisa de dependências externas instaladas pelo npm**.
-
-```bash
-node server.js
+```powershell
+npm ci
+npm start
 ```
 
-Depois, visitar `http://localhost:3000`. Usar `node --watch server.js` para modo observação de mudanças. Com npm disponível, `npm start` e `npm run dev` são equivalentes. No terminal desta sessão, npm não estava disponível, mas o Node.js 24.22.1 estava.
+`npm start` compila React/Tailwind e inicia a aplicação em `http://localhost:3000`. Para desenvolvimento: `npm run dev` e `http://127.0.0.1:5173`.
 
-Para começar os testes sem dados pré-existentes, usar uma **cópia de trabalho** e não apagar o banco de produção/da demonstração sem consentimento. O arquivo `.sqlite` é ignorado pelo Git.
+Para testar tudo: `npm run test:all`. Para mostrar SQL: `npm run consultas`. Os testes usam bancos temporários. Não apagar `dados/setlist.sqlite`.
 
-## 4. Como orientar o Codex no primeiro contato
+## Pontos críticos da migração
 
-Copie e envie esta mensagem ao Codex, preferencialmente com a pasta SETLIST aberta:
+- A interface antiga de `public/app.js`/`styles.css` foi substituída por componentes React e Tailwind. `public/` contém apenas o favicon.
+- A raiz usa npm workspaces; há um único lockfile na raiz. Instalar dependências somente por ele.
+- O servidor entrega `dist/`, não os arquivos JSX. `node server.js` requer compilação prévia; `npm start` a faz automaticamente.
+- Na Vercel, **Root Directory é a raiz do repositório**, com Framework Vite e saída `dist`. A seleção antiga `vercel/` não é mais correta.
+- A conexão Neon fica somente no servidor, em `DATABASE_URL`. Front-end nunca recebe a senha.
+- A quantidade e duração vêm da integração real; não substituir por dados só em memória ou simulações.
 
-> Você vai atuar como desenvolvedor e revisor do SETLIST, um projeto acadêmico de organizador de repertórios musicais. Antes de programar, leia `AGENTS.md` e todos os arquivos em `docs/`, depois examine `README.md`, `server.js`, `database/schema.sql`, `database/consultas.sql`, `public/index.html` e `public/app.js`. Sua primeira resposta deve ser um diagnóstico curto: (1) requisitos do enunciado, (2) o que já está implementado e foi realmente verificado, (3) lacunas e riscos, e (4) plano mínimo priorizado. Não reescreva nem amplie o projeto sem necessidade. Preserve o banco SQLite, a estrutura existente e os dados do usuário. Ao implementar, faça mudanças pequenas, teste o que alterar e atualize `docs/04_HISTORICO_E_DECISOES.md` com evidências e pendências. Se alguma informação não estiver confirmada, marque como hipótese ou peça uma decisão específica. Objetivo final: demonstrar CRUD, tabelas relacionadas, JOIN, agregação e integração front-end/back-end/banco na apresentação de 16/11/2026.
+## Definição de pronto
 
-## 5. O que entregar ao final
-
-- Código executável localmente e instruções de uso confiáveis.
-- Banco com no mínimo duas tabelas relacionadas com PK/FK (a solução proposta usa três).
-- CRUD demonstrável pela interface.
-- Uma consulta `JOIN` e outra com `SUM` e/ou `COUNT` executáveis.
-- Prova de persistência: registros continuam presentes após reiniciar o servidor.
-- Roteiro enxuto para uma demonstração em sala.
-- Histórico de alterações e quaisquer limitações ainda existentes.
-
-**Princípio central:** funcionar nos critérios avaliados é mais importante que adicionar recursos que não foram solicitados.
+Inicializa localmente, CRUD e vínculos pela interface persistem, PK/FK estão corretas, JOIN e agregação são demonstráveis e o aluno consegue explicar e executar os fluxos. A versão online só pode ser declarada validada depois de testada na URL real com Neon remoto.

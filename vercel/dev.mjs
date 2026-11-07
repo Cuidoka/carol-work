@@ -1,5 +1,5 @@
 import http from 'node:http';
-import { readFile } from 'node:fs/promises';
+import staticFiles from '../lib/static.cjs';
 import { Readable } from 'node:stream';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
@@ -9,11 +9,6 @@ import { getDatabase } from './lib/database.mjs';
 // Também usado nos testes com PostgreSQL/PGlite descartável injetado.
 export function createPreview(client) {
   const handle = createHandler(client);
-  const assets = new Map([
-    ['/', ['index.html', 'text/html']], ['/index.html', ['index.html', 'text/html']],
-    ['/app.js', ['app.js', 'text/javascript']], ['/styles.css', ['styles.css', 'text/css']],
-    ['/favicon.svg', ['favicon.svg', 'image/svg+xml']]
-  ]);
   return http.createServer(async (req, res) => {
     try {
       const url = new URL(req.url, 'http://localhost');
@@ -24,13 +19,7 @@ export function createPreview(client) {
         res.writeHead(response.status, Object.fromEntries(response.headers));
         return Readable.fromWeb(response.body).pipe(res);
       }
-      if (!assets.has(url.pathname) || !['GET', 'HEAD'].includes(req.method)) {
-        res.writeHead(404); return res.end('Página não encontrada.');
-      }
-      const [file, type] = assets.get(url.pathname);
-      const bytes = await readFile(new URL(`./public/${file}`, import.meta.url));
-      res.writeHead(200, { 'Content-Type': `${type}; charset=utf-8` });
-      res.end(req.method === 'HEAD' ? undefined : bytes);
+      if (!staticFiles.serveStatic(req, res)) { res.writeHead(404); res.end('Página não encontrada.'); }
     } catch { res.writeHead(503); res.end('Serviço indisponível.'); }
   });
 }

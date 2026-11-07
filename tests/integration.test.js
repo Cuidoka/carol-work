@@ -39,7 +39,14 @@ test('MVP integrado: HTTP → SQLite, consultas e reinicialização', async t =>
   let first, second, setlist, other;
 
   await t.test('HTML/CSS/JS servidos; arquivos privados inacessíveis', async () => {
-    for (const asset of ['/', '/app.js', '/styles.css', '/favicon.svg']) {
+    const htmlResponse = await fetch(app.url);
+    assert.equal(htmlResponse.status, 200);
+    const html = await htmlResponse.text();
+    assert.match(html, /id="root"/);
+    const assets = [...html.matchAll(/(?:src|href)="(\/assets\/[^\"]+)"/g)].map(match => match[1]);
+    assert.ok(assets.some(asset => asset.endsWith('.js')));
+    assert.ok(assets.some(asset => asset.endsWith('.css')));
+    for (const asset of ['/', '/favicon.svg', ...assets]) {
       const response = await fetch(app.url + asset);
       assert.equal(response.status, 200);
       assert.ok((await response.text()).length > 0);

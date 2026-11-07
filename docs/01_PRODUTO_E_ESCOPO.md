@@ -145,7 +145,7 @@ Fora do escopo, salvo decisão explícita posterior:
 | DELETE | Excluir música e/ou setlist | interface + endpoints `DELETE` |
 | JOIN | Relacionar repertórios, itens e músicas | `database/consultas.sql` |
 | Agregação | `COUNT` e `SUM` por setlist | `database/consultas.sql` e `GET /api/setlists` |
-| Integração | interface chama API que consulta/grava SQLite | `public/app.js` → `server.js` → SQLite |
+| Integração | React chama API que consulta/grava SQLite | `src/lib/api.mjs` / `src/hooks/useSetlistData.js` → `server.js` → SQLite |
 | Persistência | registro permanece após reinício | demonstração manual |
 
 ## 8. Critério de conclusão

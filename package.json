@@ -2,12 +2,33 @@
   "name": "setlist",
   "version": "1.0.0",
   "private": true,
-  "description": "Organizador local de repertórios musicais — projeto acadêmico",
-  "engines": { "node": ">=22.13.0" },
+  "description": "SETLIST — React, Tailwind, Node.js e bancos relacionais",
+  "engines": {
+    "node": "24.x"
+  },
+  "workspaces": [
+    "vercel"
+  ],
   "scripts": {
     "start": "node server.js",
-    "dev": "node --watch server.js",
+    "prestart": "npm run build",
+    "build": "vite build",
+    "dev": "node scripts/dev.mjs",
     "test": "node --test",
-    "consultas": "node database/consultar.js"
+    "pretest": "npm run build",
+    "test:all": "npm test && npm run test --workspace setlist-vercel",
+    "consultas": "node database/consultar.js",
+    "db:init:neon": "npm run db:init --workspace setlist-vercel",
+    "preview:neon": "npm run start --workspace setlist-vercel"
+  },
+  "dependencies": {
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "4.3.5",
+    "@vitejs/plugin-react": "6.2.1",
+    "tailwindcss": "4.3.5",
+    "vite": "8.3.6"
   }
 }
