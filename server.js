@@ -133,7 +133,7 @@ function createApp(options = {}) {
         if (method === 'GET') return json(res, 200, db.prepare('SELECT * FROM musicas ORDER BY titulo COLLATE NOCASE, id').all());
         if (method === 'POST') {
           const data = await readJson(req);
-          const values = [...songData(data), ...materialData(data)];
+          const values = [...songData(data), ...(await materialData(data))];
           const result = db.prepare('INSERT INTO musicas (titulo, artista, duracao_segundos, letra, cifra, tom, notas, letra_fonte, cifra_fonte, duracao_fonte) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)').run(...values);
           return json(res, 201, requireSong(Number(result.lastInsertRowid)));
         }
@@ -144,7 +144,7 @@ function createApp(options = {}) {
         const current = requireSong(songId);
         if (method === 'PUT') {
           const data = await readJson(req);
-          const values = [...songData(data), ...materialData(data, current)];
+          const values = [...songData(data), ...(await materialData(data, current))];
           db.prepare('UPDATE musicas SET titulo = ?, artista = ?, duracao_segundos = ?, letra = ?, cifra = ?, tom = ?, notas = ?, letra_fonte = ?, cifra_fonte = ?, duracao_fonte = ? WHERE id = ?').run(...values, songId);
           return json(res, 200, requireSong(songId));
         }
