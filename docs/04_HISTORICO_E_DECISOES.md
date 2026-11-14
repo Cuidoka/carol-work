@@ -304,3 +304,132 @@ Instância iniciada por `node server.js` com `PORT=3005`, `SETLIST_SEED=0` e ban
 **Limites:** não foram validados Neon remoto, deploy/routing reais da Vercel, múltiplos usuários, outros navegadores ou auditoria completa de acessibilidade. A aplicação foi reformulada e conferida localmente; publicação continua pendente de conta/banco/variáveis e teste na URL real. O roteiro de apresentação precisa ser ensaiado novamente porque a explicação do frontend mudou.
 
 **Status:** front-end convertido para React/Tailwind nas duas versões por uma fonte única; build, instalação e 23 testes automatizados aprovados, com fluxos locais confirmados no navegador. Requisitos SQL e integração preservados. Instâncias descartáveis encerradas ao terminar.
+
+## 2026-11-14 — Acabamento visual, letras/cifras e modo de ensaio
+
+**Autorização e meta:** o usuário atualizou o prazo para o fim de novembro e pediu um site clean, com transições/hovers discretos e recursos úteis para músicos. Confirmou busca externa de letras com revisão antes de salvar. A meta permanece ativa; `docs/06_EVOLUCAO_E_QUALIDADE.md` registra critérios, decisões e plano até 30/11. O usuário informou que ainda não tem URL na Vercel. As datas anteriores de 16/11 no histórico e no enunciado original não são o prazo vigente.
+
+**Estado anterior conferido:** árvore limpa na `main`, versão React/Tailwind já enviada no commit `66130b1`. Relidos AGENTS, README, documentos 00–05 e inspecionados os componentes, hook, APIs, schemas e testes reais. Músicas tinham somente dados básicos; não havia material ou leitor de ensaio. Nenhuma dependência npm foi adicionada nesta evolução.
+
+**Implementação e arquivos:**
+
+- `src/styles.css`, `Button.jsx`, `Dialog.jsx`, `App.jsx`, `Library.jsx`, `Setlists.jsx`: movimentos de entrada de 180–240 ms, hover discreto de botões/cards/linhas, foco de textarea e regra de movimento reduzido. Identidade visual e navegação preservadas. Biblioteca identifica material e filtra músicas com letra/cifra; títulos abrem leitura.
+- `EditorDialog.jsx` e novo `LyricsSearch.jsx`: dados básicos/tom/notas e seção letra/cifra; busca explícita por título/artista; versões com álbum/duração; prévia; importação para o formulário e gravação somente ao salvar. Cancelar não grava. Formulário valida os dados básicos mesmo se a seção de material estiver selecionada. Cifras são manuais.
+- Novo `Rehearsal.jsx`: leitura de cifra monoespaçada com espaços preservados ou letra com quebra de linha; tom/notas; início acumulado de cada faixa; navegação por botões e ←/→; fonte de 14 a 30 px e rolagem opcional. Inicialmente mostra cifra se disponível, senão letra. Leitura é estado de sessão React, sem regravar dados.
+- Novos `lib/song-material.cjs` e `lib/lyrics.cjs`: validação compartilhada e consulta LRCLIB por host fixo, identificação SETLIST, query codificada, timeout de 10 s, sem redirecionamento, até 8 opções e respeito a Retry-After. Erros externos não alteram dados. Não há scraping, busca de cifras ou envio de notas/conteúdo do banco ao catálogo.
+- `server.js`, `database/schema.sql`, `vercel/lib/handler.mjs`, `vercel/database/schema.sql`, `vercel/api/index.mjs`: novos campos opcionais na música (`letra`, `cifra`, `tom`, `notas`, `letra_fonte`); INSERT/UPDATE parametrizados; PUT antigo preserva campos omitidos e string vazia limpa. Limite JSON de 256 KB comporta material; textos têm limites próprios. A busca `/api/letras` independe de transação/conexão de banco. Entrada Neon mantém handler entre requisições da mesma instância para preservar intervalo local do catálogo.
+- SQLite: migração aditiva de colunas ausentes, transacional ao iniciar. PostgreSQL: reaplicar schema com ADD COLUMN IF NOT EXISTS. Não são recriadas entidades ou alteradas relações; permanecem as três tabelas, PK/FK, UNIQUE, cascatas, JOIN e agregações. Orientações de backup e migração remota atualizadas.
+- `tests/material.test.js`, `tests/lyrics.test.js`, testes existentes SQLite e PGlite: migração de banco anterior, material, compatibilidade com payload antigo, limites/fonte inválida, integração da busca com os dois handlers, catálogo vazio/falhas/429 e nova dimensão de payload.
+- Atualizados AGENTS, README, documentos 00/01/02/03/05 e README Neon; criado documento 06. Entradas históricas anteriores preservadas.
+
+**Testes efetivamente executados:**
+
+1. `npm run test:all`: **17 testes locais + 11 PostgreSQL/PGlite passaram, 0 falhas** na execução final. O comando compila o React antes. CRUD, relações, ordem, JOIN, COUNT/SUM, rollback SQL real, cascatas e persistência continuam aprovados. A primeira tentativa restrita falhou por `connect EACCES` no HTTP de loopback; reexecutada com acesso local permitido, sem alterar código para contornar o ambiente.
+2. Migração SQLite: fixture do schema anterior com música ID 7, setlist ID 4 e vínculo preexistente; colunas adicionadas, material gravado e recuperado após fechar/reabrir, IDs/posição conservados, `integrity_check=ok`, `foreign_key_check=[]`. Payloads antigos preservam material; inválidos são recusados e campos podem ser limpos. Tudo em banco temporário.
+3. Migração PostgreSQL/PGlite: tabela antiga com registro anterior; schema aplicado duas vezes sem perder o ID/título, campos novos com default vazio. Testes do handler confirmaram criação, edição, limpeza e persistência do material após reabrir o motor. Não é teste de Neon remoto.
+4. Busca com respostas injetadas: validação/codificação, fonte, filtragem de registros sem letra, vazio, resposta inválida, falha HTTP/rede e 429; segunda chamada durante Retry-After não chega ao serviço. Rota SQLite por HTTP e handler Neon retornam opções sem gravar músicas; conexão de banco não é aberta pelo handler Neon nesse fluxo.
+5. Consulta **real** com `createLyricsSearch` ao LRCLIB para Tempo Perdido/Legião Urbana: 8 opções; primeira com 763 caracteres e fonte de registro 3023239. Não foi usada resposta simulada nessa consulta. Só metadados/quantidade foram registrados no terminal.
+6. `node vercel/scripts/check.mjs`: passou (build, sintaxe e configuração básica). `git -c core.autocrlf=false diff --check`: passou. Sem deploy executado.
+
+**Verificação efetiva no navegador:**
+
+Instância em `http://localhost:3012`, banco separado `C:/Users/siltu/AppData/Local/Temp/setlist-polish-20261114.sqlite`, sem exemplos. O banco principal `dados/setlist.sqlite` não foi usado para testes/migração.
+
+- Criada música própria Ensaio de novembro, 04:10, tom Am, notas e letra/cifra com espaços e quebras de linha; material salvo pela interface.
+- Criada Tempo Perdido/Legião Urbana, 05:00; busca real pela interface retornou versões; prévia selecionada com textarea ainda vazio (0 caracteres); importação preencheu 763 caracteres; salvar e recarregar/editar recuperou os 763 e a fonte LRCLIB. A letra real ficou somente no banco descartável, não no código ou nas capturas de entrega.
+- Criado Acústico de novembro, evento Ensaio geral · sala 02, e incluídas as duas músicas. Mover Tempo Perdido para cima e recarregar preservou a ordem e o total **09:10**. Leitor mostrou a música própria em segundo lugar, com início em **05:00**.
+- Leitura de cifra conservou alinhamento (`white-space: pre`); aumentar fonte exibiu 22 px; alternar para letra, avançar, navegar de volta com ← e iniciar rolagem funcionaram. Na letra longa, scrollTop avançou; Escape fechou o leitor. A abertura de faixa sem cifra passou a exibir sua letra por padrão, conferida após o build final.
+- Editada cifra para um texto diferente e cancelado: reabrir o leitor conservou a cifra original. Salvar música vazia pela seção de material devolveu mensagem de título/artista e voltou aos dados básicos. Filtros Com cifra/Com letra retornaram respectivamente 1 e 2 músicas.
+- Conferidos biblioteca, formulário e leitor em **390×844**, e repertório/leitor em **1366×900**. Largura do documento não excedeu a viewport nas verificações. CSS compilado retornou transições de 160/180 ms e entrada de 240 ms; regra de movimento reduzido presente. Não foi emulada a preferência do sistema operacional nem realizada auditoria completa de acessibilidade.
+- Console do navegador: nenhum erro/aviso nas inspeções finais. Capturas com texto próprio em `setlist-novembro-repertorio.jpg` e `setlist-novembro-ensaio.jpg`, na pasta de visualizações do chat. Viewport restaurada e aba temporária fechada.
+- Leitura direta final do SQLite confirmou duas músicas com os tamanhos esperados de material, vínculos na ordem 2 → 1, `integrity_check=ok` e FKs sem violações. Instância de teste encerrada por interrupção da sessão de execução (resultado terminal observado).
+
+**Limites e próximo passo:** nenhuma migração foi aplicada ao Neon real e nenhuma publicação foi realizada. Não há URL fornecida ou credenciais locais para validar a infraestrutura remota; as ferramentas disponíveis não incluem acesso Neon/Vercel. A proteção do catálogo é por processo, sem coordenação global entre instâncias serverless. Cobertura de letras depende do catálogo; preenchimento manual permanece disponível. Sem testes de carga/múltiplos usuários ou de outros navegadores. A revisão visual do usuário e a preparação/publicação na Vercel permanecem próximas etapas da meta; esta evolução está implementada e validada localmente. Alterações ainda locais, sem novo commit/push nesta etapa.
+
+## 2026-11-14 — Primeiro diagnóstico da URL Vercel e correção de estado indisponível
+
+**Informação nova:** o usuário forneceu `https://carol-work.vercel.app/`. Isso substitui a ausência de URL do registro anterior; não demonstra que o banco esteja configurado ou que a versão local mais recente tenha sido publicada.
+
+**Evidências executadas no endereço real:**
+
+- GET `/`: HTTP 200, HTML SETLIST e assets públicos respondendo. GET `/api/musicas` e `/api/setlists`: **HTTP 503**, JSON com `Serviço indisponível. Confira a configuração do banco no servidor.`
+- Navegador confirmou página renderizada, erro visível e totais/estados vazios exibidos como zero apesar de a consulta ter falhado. Captura em `vercel-diagnostico.jpg`, na pasta de visualizações do chat.
+- Asset público `/assets/index-DOmUJh_-.js`: HTTP 200; não contém os recursos Modo de ensaio/Buscar letra presentes no código local. Não foi identificado o commit do deployment pelo painel; não presumir o SHA remoto a partir do hash do asset.
+- A mensagem retornada é compatível com falha na obtenção da configuração `DATABASE_URL` na entrada da API anterior. **Inferência, não confirmação do painel:** variável ausente/inválida deve ser a primeira verificação. Não há evidência suficiente para afirmar banco vazio, schema ausente ou credenciais erradas especificamente.
+- O painel Vercel redirecionou para login. Nenhuma integração Neon/Vercel de conta está disponível entre as ferramentas. A ferramenta WebMCP pública “Open Vercel Plugin” apenas abriu uma página de documentação do plugin; não autenticou nem concedeu acesso ao projeto. Não foram lidos logs privados, variáveis, senhas ou tabelas remotas.
+- **Não foram executados CRUD/mutações online**, smoke remoto, migração ou redeploy. Sem banco respondendo, não declarar persistência/JOIN/agregação online aprovados.
+
+**Problema comprovado e correção local:** falha na primeira carga era apresentada junto com contadores zero e biblioteca vazia, permitindo tentar cadastros sem carga inicial válida. Em `src/hooks/useSetlistData.js`, `hasLoaded` só passa a verdadeiro após leitura completa bem-sucedida. Em `src/App.jsx`, a primeira falha exibe totais `—`, estado indisponível e criação bloqueada; “Tentar novamente” permanece habilitado. Uma biblioteca de fato carregada e vazia continua mostrando zero e ações de cadastro. Sem mudanças nos bancos/SQL.
+
+**Teste de navegador da correção:** servidor local temporário em 3013, sem banco, simula as duas primeiras consultas GET com 503 e as seguintes com arrays vazios 200. Confirmados: criação bloqueada, retry habilitado, nenhum falso “Um palco em branco”; ao clicar em retry, erro some, contadores passam para zero e criação volta a estar disponível. É teste de UI com respostas controladas, **não teste de recuperação do Neon remoto**. Captura do estado corrigido em `setlist-falha-corrigida.jpg`. Servidor temporário encerrado por interrupção da sessão.
+
+**Regressão executada:** `npm run test:all` recompilou a interface e aprovou **17 testes locais e 11 PostgreSQL/PGlite**, sem falhas. Os testes do navegador complementam a suíte para o estado de erro do React.
+
+**Próximo passo:** confirmar/criar conexão Neon no projeto, confirmar `DATABASE_URL` no ambiente Production, aplicar o schema PostgreSQL atual e redeploy. A pergunta sobre o estado da conexão foi enviada ao usuário; nunca solicitar senha/token no chat. Versão local e alterações novas continuam sem novo commit/push; a falha observada no deployment permanece sem correção remota confirmada. Meta ativa.
+
+## 2026-11-14 — Confirmação da pendência Neon e revisão de teclado
+
+**Informação nova:** o usuário confirmou “Ainda não conectei o Neon”. O banco remoto deve ser criado/conectado ao projeto antes da validação online. A consulta ao diretório de integrações confirmou Vercel e Neon disponíveis, mas não instalados/conectados nesta conversa; ambos foram sugeridos. Consulta posterior às ferramentas não encontrou acesso de conta Vercel/Neon. Nenhum deploy, variável ou banco remoto foi modificado.
+
+**Problema reproduzido:** ao abrir Nova setlist e Nova música, o foco permanecia em “Fechar formulário”, apesar da intenção de autoFocus no primeiro input. Inspeção mostrou que React não deixou atributo autofocus no HTML e tentou focar antes de o dialog ser aberto. O overflow da página de fundo permanecia visible com o diálogo aberto.
+
+**Correção:** `EditorDialog.jsx` marca o primeiro campo com data-autofocus; `Dialog.jsx` aplica foco depois de showModal. `Button.jsx` marca botões autoFocus, preservando a intenção de foco em Cancelar nas confirmações. O botão de fechar aceita rótulo apropriado: Sair do ensaio no leitor e Fechar formulário no editor. `src/styles.css` bloqueia a rolagem do documento com diálogo aberto e reserva o espaço da barra para evitar deslocamento horizontal. Não houve alteração de API/SQL/schema nesta revisão.
+
+**Verificação realmente executada:**
+
+- `npm run build`: passou, com os componentes atuais compilados. `node vercel/scripts/check.mjs` e `git -c core.autocrlf=false diff --check`: passaram.
+- Navegador em instância descartável na porta 3014, SQLite em memória com dados fictícios e letra autoral de 80 linhas. Nova setlist abriu com input nome focado; Escape fechou e retornou ao botão de origem. Nova música abriu com input titulo focado; Tab levou a artista. Confirmação de exclusão iniciou com Cancelar focado e foi cancelada, sem excluir dados.
+- Overflow do documento passou a hidden enquanto o diálogo estava aberto e voltou ao estado anterior após fechar. Largura do documento não excedeu a viewport na inspeção.
+- Rolagem do ensaio iniciou e avançou; Pausar voltou a aria-pressed=false. A posição permaneceu em 279 px após outras interações, confirmando pausa. Aumentar/diminuir fonte retornou a 20 px. Sair do ensaio fechou o leitor.
+- Console sem erros/avisos nas inspeções finais. Captura do foco corrigido em `setlist-foco-formulario.jpg`, na pasta de visualizações do chat. Aba fechada e processo de teste encerrado com resultado terminal observado.
+- A suíte completa de 28 testes passou no ciclo imediatamente anterior; não foi repetida nesta revisão exclusiva de foco/CSS. Os controles alterados foram exercitados no navegador após o novo build.
+
+**Próximo passo externo:** conectar as contas nas integrações ou criar/conectar Neon pelo painel autenticado da Vercel. O guia oficial confirma que a integração gerenciada pode criar conta/projeto Neon e configurar DATABASE_URL no projeto conectado. Depois aplicar o schema, publicar os arquivos novos e executar os testes na URL real. Referência: https://neon.com/docs/guides/vercel-managed-integration. Esta pendência impede declarar o site online concluído; meta permanece ativa.
+
+## 2026-11-14 — Bloqueio da etapa online revalidado
+
+**Auditoria de continuidade:** o ciclo anterior teve progresso verificável de interface (foco/diálogos e pausa da leitura). O impedimento externo da publicação/validação online persistiu no diagnóstico da URL, na tentativa de conexão das contas e nesta revalidação: não há banco Neon conectado pelo usuário nem acesso autenticado disponível para configurar o projeto.
+
+**Estado revalidado:** nova consulta ao diretório de integrações retornou Vercel e Neon como não instalados; nenhuma ferramenta dessas contas está disponível. Novos GETs públicos a `/api/musicas` e `/api/setlists` em `https://carol-work.vercel.app` retornaram novamente HTTP 503 e a mesma mensagem de configuração do banco. O usuário já confirmou que ainda não conectou o Neon. Não há processo/deploy em andamento pelo agente a aguardar; instâncias locais de teste foram encerradas.
+
+**Decisão:** após o impedimento se repetir por três ciclos consecutivos e a implementação/verificação local já ter sido realizada, marcar a meta como **bloqueada**, sem alterar o objetivo ou declará-lo concluído. O avanço restante exige autenticação/conexão do banco pelo usuário ou conexão das integrações de conta. Não repetir testes ou acrescentar funcionalidades para contornar a ausência de acesso remoto. Nenhum arquivo de código, banco, commit ou deployment foi modificado neste ciclo; esta entrada apenas registra o estado.
+
+**Retomada:** confirmar acesso autenticado, criar/conectar Neon ao projeto `carol-work` em Production, aplicar o schema PostgreSQL atual, publicar as mudanças locais e executar CRUD/persistência/letras/ensaio na URL real. Não solicitar nem versionar senhas/tokens. Testes locais aprovados não substituem essa validação remota.
+
+## 2026-11-14 — Configuração oficial do Neon para o agente
+
+**Solicitação:** seguir `https://neon.com/prompts/agent-setup.md` e depois a skill `https://neon.com/.well-known/agent-skills/neon/SKILL.md`; verificar instalações existentes, instalar somente o que faltava e preservar a configuração. O usuário confirmou login na conta correta por GitHub.
+
+**Inspeção anterior:** Node 24.22.1/npm 11.19.1 já instalados; Neon CLI ausente. Nenhuma skill Neon nos diretórios locais/globais inspecionados, nenhum registro Neon no config.toml do Codex e nenhum plugin Neon instalado na listagem do Codex. A configuração existente continha outros plugins e MCPs, que deveriam permanecer.
+
+**Alterações executadas:**
+
+1. `npm install -g neon@latest` instalou **Neon CLI 9.5.0** no prefixo npm do usuário (`C:/Users/siltu/AppData/Roaming/npm`). O package.json/lockfile do SETLIST não foram alterados. npm avisou sobre postinstall de esbuild não autorizado por sua política de scripts; versão, comandos de ajuda e instalação do plugin funcionaram sem mudar essa política.
+2. `neon login`, iniciado pelo agente, abriu a autenticação oficial. O CLI confirmou `Auth complete (profile DEFAULT)`; o usuário confirmou ser a conta desejada e informou login com GitHub. Credenciais ficaram no armazenamento do CLI, fora do projeto e do histórico. Nenhuma senha/token foi solicitado ou impresso pelo agente.
+3. Antes da instalação, salvo backup do config.toml em `backups/neon-agent-setup-20261114/config.toml.before`, pasta ignorada pelo Git. Criado manifesto de SHA-256 dos 59 arquivos existentes versionados/não ignorados para detectar alterações do instalador.
+4. `neon plugins --agent codex -y` instalou em escopo de usuário o plugin oficial **neon-postgres 3.0.8**, registrado como `neon-postgres@plugins-cli`. O comando usa o escopo global de usuário por padrão, conforme a ajuda real do CLI. Acrescentada a entrada habilitada no `C:/Users/siltu/.codex/config.toml`; o conteúdo anterior permaneceu integralmente como prefixo do arquivo final.
+5. Plugin em `C:/Users/siltu/.codex/plugins/cache/plugins-cli/neon-postgres/3.0.8`. Verificados os sete SKILL.md: neon, neon-postgres, neon-auth, neon-object-storage, neon-functions, neon-ai-gateway e neon-realtime. O manifesto Codex aponta para `./skills/`; `mcp.json` inclui servidor HTTP `neon` em `https://mcp.neon.tech/mcp`, sem chave embutida. O SETLIST usará essa instalação global, sem duplicação de configuração MCP no repositório.
+
+**Verificações:** CLI `--version` retornou 9.5.0; perfil DEFAULT autenticado; `codex plugin list --json` confirmou nome/versão/installed/enabled; arquivos reais de skills e manifesto MCP inspecionados. Consulta autenticada `neon orgs list -o json` passou e retornou uma organização; saída resumida sem detalhes privados. Uma primeira tentativa de listar projetos exigiu seleção de organização e não serviu como prova de acesso à API; a verificação foi refeita com a listagem de organizações, sem criar recursos. SHA-256 confirmou **zero arquivos do projeto alterados pelo instalador**, e comparação confirmou preservação integral da configuração Codex anterior. Backup confirmado como ignorado pelo Git. Não foram repetidos testes do aplicativo, pois o setup não mudou seu comportamento.
+
+**Limites/retomada:** é necessário reiniciar/reabrir o Codex para carregar o plugin, as skills e o MCP. O MCP pode solicitar seu próprio consentimento OAuth no primeiro uso; a instalação do manifesto não comprova transporte MCP autenticado nesta sessão. O CLI já está autenticado e pode ser usado sem esperar esse carregamento. Nenhum banco/branch foi criado, nenhum projeto Neon foi vinculado ao SETLIST, nenhuma DATABASE_URL do aplicativo foi escrita e nenhuma configuração da Vercel foi alterada neste pedido. A etapa de provisionar/conectar o banco, aplicar o schema e publicar continua pendente. Instalação das ferramentas concluída; configuração do banco do aplicativo permanece distinta.
+
+## 2026-11-14 — Banco Neon separado criado e preparação da publicação
+
+**Retomada e autorização:** após reiniciar o Codex, o usuário retomou a meta e escolheu explicitamente criar um projeto SETLIST separado. O projeto anterior `purple-frog-13620404` foi preservado. As skills Neon carregaram, mas ferramentas MCP não apareceram; utilizado o CLI autenticado, conforme preferência da skill. O executável CLI e dependências npm não estavam presentes após o reinício. A reinstalação inicial encontrou ENOENT num conteúdo ausente do cache npm. Repetida com cache separado ignorado em `backups/neon-npm-cache`: CLI 9.5.0 restaurado e login GitHub DEFAULT preservado; `npm ci` restaurou as dependências já fixadas no lockfile, sem mudança de versões.
+
+**Infraestrutura Neon:** criado projeto **SETLIST**, ID `cold-frost-08199078`, região `aws-us-east-2`, PostgreSQL 18 e compute 0.25 CU; branch principal `main`, ID `br-sparkling-cell-be4lbvbo`. Branch temporário `setlist-validation-20261114`, ID `br-rapid-mouse-benb9wxa`, criado com expiração de 24 horas para validar antes do principal.
+
+**Verificação real no Neon:** conexão WebSocket do driver existente funcionou. Branch de teste vazio inspecionado antes de qualquer DDL. `vercel/database/schema.sql` aplicado duas vezes pela conexão direta; catálogo confirmou três PKs e duas FKs com cascata. Preview HTTP local usando conexões reais ao branch executou o smoke completo: CRUD de músicas/repertórios, letra/cifra/tom/notas, compatibilidade de PUT sem material, duplicidade, ordem B→A, JOIN, COUNT/SUM com 2 músicas/445 segundos, remoção de vínculo, cascatas e leitura por requisições separadas. **Passou**, com limpeza somente dos IDs do teste e biblioteca do branch novamente vazia. Isso valida transporte real Neon/WebSocket; não é PGlite nem simulação de respostas.
+
+**Banco principal:** após o teste, confirmado vazio e aplicado o mesmo schema pela conexão direta. Três tabelas ficaram vazias, prontas para o uso. `.neon` vincula a pasta ao novo projeto/main, sem env pull automático; arquivo ignorado pelo Git. Criado `vercel/.env.local`, também ignorado, com DATABASE_URL pooled para o aplicativo e DATABASE_URL_UNPOOLED para migração. Conexões obtidas em memória sem imprimi-las. Nenhuma gravação no SQLite principal.
+
+**Ajustes do código/verificação:** `getDatabase` aceita conexão opcional; `init-db.mjs` prefere DATABASE_URL_UNPOOLED e mantém fallback compatível. Exemplo de env documenta o campo direto. O smoke agora verifica material musical salvo e retornado pelo JOIN. `npm run db:init:neon` passou contra o banco principal, reaplicando o schema idempotente e confirmando FKs. `npm run test:all`: **17 locais + 11 PGlite passaram, 0 falhas**, após os ajustes. Uma tentativa inicial do helper de teste não resolveu o driver a partir de `backups/`; corrigida para resolver pelo workspace `vercel/`, sem trocar/adicionar driver.
+
+**Acesso/configuração Vercel:** CLI oficial 65.16.0 carregado temporariamente via npm exec. O usuário concluiu e confirmou login como cuidoka. Pasta vinculada ao projeto existente `carol-work` (`prj_VF0K7kCtV72z6AEFWo3qBRCAvCIJ`), dono `cuidokas-projects`, já conectado ao GitHub `Cuidoka/carol-work`, branch `main`. O link criou `.vercel/project.json` e `.env.local` com OIDC; ambos ignorados, sem expor valores. Normalizadas as entradas duplicadas de ignore adicionadas pelo CLI, mantendo as exceções de exemplos.
+
+**Causa confirmada do 503 anterior:** a listagem de variáveis revelou DATABASE_URL_DATABASE_URL e outras variáveis prefixadas, mas não DATABASE_URL. A entrada da API exige exatamente DATABASE_URL. Adicionado esse nome correto como **Secret apenas em Production**, apontando para o novo projeto SETLIST; variáveis/integração antigas preservadas. Ajustados somente os parâmetros de build necessários: Node 26.x → **24.x**, framework Node → **Vite**, install `npm ci`, build `npm run build`, saída `dist`. Root Directory já era a raiz e foi preservado. Snapshot de configurações anteriores salvo em backup ignorado.
+
+**Proteção da publicação:** `.vercelignore` ampliado para ignorar env em qualquer diretório, `.neon`, `.agents` e `.codex`, além de bancos/backups existentes. Revisão Git confirmou nenhum banco, arquivo de conexão ou contexto `.neon` entre arquivos a publicar. Nenhum segredo em argumentos de linha de comando; o valor DATABASE_URL foi passado por stdin ao CLI Vercel.
+
+**Estado neste registro:** banco/configuração prontos e testes locais/remotos aprovados. A publicação do código novo e a verificação da URL pública ainda serão executadas; não antecipar sua aprovação.

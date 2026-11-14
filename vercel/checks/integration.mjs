@@ -36,6 +36,17 @@ test('Versão Neon: contrato HTTP e SQL em PostgreSQL/PGlite descartável', asyn
     return result;
   };
   let a, b, show, other;
+  await t.test('Migração PostgreSQL preserva registros anteriores e pode ser repetida', async () => {
+    const old = await PGlite.create();
+    try {
+      await old.exec(`CREATE TABLE musicas(id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY, titulo TEXT NOT NULL, artista TEXT NOT NULL, duracao_segundos INTEGER NOT NULL, criado_em TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP);
+        INSERT INTO musicas(titulo,artista,duracao_segundos) VALUES('Anterior','Banda',200);`);
+      const schema = await readFile(new URL('../database/schema.sql', import.meta.url), 'utf8');
+      await old.exec(schema); await old.exec(schema);
+      const row = (await old.query('SELECT * FROM musicas')).rows[0];
+      assert.equal(row.id, 1); assert.equal(row.titulo, 'Anterior'); assert.equal(row.letra, '');
+    } finally { await old.close(); }
+  });
   await t.test('PostgreSQL: PKs, FKs com cascata, CHECK e UNIQUE no catálogo real', async () => {
     const constraints = await client.query(`SELECT contype, confdeltype FROM pg_constraint
       WHERE conrelid IN ('musicas'::regclass, 'setlists'::regclass, 'setlist_musicas'::regclass)`);
@@ -48,10 +59,19 @@ test('Versão Neon: contrato HTTP e SQL em PostgreSQL/PGlite descartável', asyn
   await t.test('CREATE/READ/UPDATE de músicas e repertórios', async () => {
     assert.deepEqual(await call('/musicas'), []);
     a = await call('/musicas', 'POST', { titulo: 'Teste 01', artista: 'Banda A', duracao_segundos: 200 }, 201);
-    b = await call('/musicas', 'POST', { titulo: "Teste ' <script>", artista: 'Banda B', duracao_segundos: 195 }, 201);
+    b = await call('/musicas', 'POST', { titulo: "Teste ' <script>", artista: 'Banda B', duracao_segundos: 195, cifra: 'G    D', notas: 'Teste' }, 201);
+    assert.equal(b.cifra, 'G    D');
+    b = await call(`/musicas/${b.id}`, 'PUT', { ...b, cifra: '', notas: '' });
+    assert.equal(b.cifra, ''); assert.equal(b.notas, '');
     a = await call(`/musicas/${a.id}`, 'PUT', { titulo: 'Teste editado', artista: 'Banda editada', duracao_segundos: 250 });
     assert.equal(a.duracao_segundos, 250);
     assert.equal((await call('/musicas')).length, 2);
+    const material = { letra: 'Texto próprio\nLinha 2', cifra: 'C     G\nTexto próprio', tom: 'Am', notas: 'Repetir final', letra_fonte: 'https://lrclib.net/api/get/1' };
+    a = await call(`/musicas/${a.id}`, 'PUT', { ...a, ...material });
+    assert.equal(a.cifra, material.cifra); assert.equal(a.letra, material.letra);
+    for (const invalid of [{ letra: null }, { cifra: 'x'.repeat(20001) }, { tom: 42 }, { letra_fonte: 'https://evil.test' }]) {
+      await call(`/musicas/${a.id}`, 'PUT', { ...a, ...invalid }, 400);
+    }
     show = await call('/setlists', 'POST', { nome: 'Show' }, 201);
     assert.equal(show.duracao_total_segundos, 0);
     show = await call(`/setlists/${show.id}`, 'PUT', { nome: 'Show editado', evento: 'Campus' });
@@ -68,6 +88,7 @@ test('Versão Neon: contrato HTTP e SQL em PostgreSQL/PGlite descartável', asyn
     const result = await call(`/setlists/${show.id}/ordem`, 'PUT', { musica_ids: [b.id, a.id] });
     assert.deepEqual(result.musicas.map(item => item.id), [b.id, a.id]);
     assert.equal(result.duracao_total_segundos, 445);
+    assert.equal(result.musicas.find(song => song.id === a.id).letra, 'Texto próprio\nLinha 2');
     const summary = (await call('/setlists')).find(item => item.id === show.id);
     assert.equal(summary.duracao_total_segundos, 445);
     assert.equal(typeof summary.duracao_total_segundos, 'number');
@@ -108,6 +129,7 @@ test('Versão Neon: contrato HTTP e SQL em PostgreSQL/PGlite descartável', asyn
     assert.equal(result.nome, 'Show editado');
     assert.deepEqual(result.musicas.map(item => item.id), [b.id, a.id]);
     assert.equal(result.duracao_total_segundos, 445);
+    assert.equal(result.musicas.find(song => song.id === a.id).cifra, 'C     G\nTexto próprio');
   });
   await t.test('DELETE: vínculo preserva biblioteca; cascatas preservam outras entidades', async () => {
     await call(`/setlists/${show.id}/musicas/${a.id}`, 'DELETE');
@@ -135,7 +157,7 @@ test('Versão Neon: contrato HTTP e SQL em PostgreSQL/PGlite descartável', asyn
     await call('/musicas/999', 'DELETE', undefined, 404);
     await call('/inexistente', 'GET', undefined, 404);
     await call(`/setlists/${other.id}/musicas`, 'POST', { musica_id: 999 }, 404);
-    for (const [body, type, status] of [['{', 'application/json', 400], ['x'.repeat(70000), 'application/json', 413], ['{}', 'text/plain', 415]]) {
+    for (const [body, type, status] of [['{', 'application/json', 400], ['x'.repeat(300000), 'application/json', 413], ['{}', 'text/plain', 415]]) {
       const response = await handler(new Request('http://localhost/api/musicas', { method: 'POST', headers: { 'Content-Type': type }, body }));
       assert.equal(response.status, status);
     }

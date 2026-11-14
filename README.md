@@ -1,6 +1,6 @@
 # SETLIST
 
-Organizador de repertórios musicais para apresentação acadêmica em **16/11/2026**.
+Organizador de repertórios musicais para músicos e bandas, com entrega acadêmica até o **fim de novembro de 2026**.
 
 O front-end foi convertido para **React + Tailwind CSS + Vite**, conforme solicitação de 07/11/2026. Uma única interface em `src/` atende aos dois back-ends:
 
@@ -60,15 +60,25 @@ Abra **http://127.0.0.1:5173**. O mesmo processo inicia a API SQLite em 3000 e o
 - Associação das músicas da biblioteca, sem duplicar a mesma faixa no repertório.
 - Reordenação com setas, remoção de vínculos e duração total atualizada.
 - Confirmação das exclusões, validação de duração e mensagens de erro/sucesso.
+- Letra e cifra por música, tom e notas de ensaio, persistidos no banco.
+- Busca de letras no LRCLIB com seleção da versão e revisão antes de salvar.
+- Modo de ensaio com navegação pela sequência, fonte ajustável e rolagem opcional.
+- Filtros de músicas com letra/cifra e movimentos discretos com suporte a movimento reduzido.
 - Interface responsiva implementada em componentes React com classes Tailwind.
 
 Duração é digitada em minutos:segundos e armazenada como inteiro de segundos. Ex.: 04:10 + 03:15 = **07:25**.
 
 Remover uma faixa do repertório preserva a biblioteca. Excluir uma música remove seus vínculos. Excluir uma setlist preserva as músicas.
 
+## Letras, cifras e ensaio
+
+Na edição de uma música, use **Dados da música** para título, artista, duração, tom e notas. Em **Letra e cifra**, preencha manualmente ou clique em **Buscar letra**, confira a versão/prévia e escolha **Usar esta letra**. A importação só persiste ao salvar a música. O catálogo LRCLIB pode não ter uma versão; erros de rede não impedem o cadastro manual. Cifras são inseridas manualmente e preservam os espaços de alinhamento.
+
+Clique no título de uma música ou em **Iniciar ensaio** no repertório. Alterne letra/cifra, ajuste a fonte, ative/pare a rolagem ou navegue com ←/→. Esses controles só mudam a leitura; não alteram o conteúdo gravado. O material salvo pode ser lido sem consultar o catálogo novamente.
+
 ## Dados e integridade
 
-O banco local é criado automaticamente. Apenas um arquivo novo recebe 5 músicas fictícias e 1 setlist com 3 faixas; esvaziar a biblioteca e reiniciar não reinserirá exemplos. Use `SETLIST_SEED=0` antes da primeira execução para começar vazio.
+O banco local é criado automaticamente. Na primeira abertura com esta versão, uma migração aditiva adiciona `letra`, `cifra`, `tom`, `notas` e `letra_fonte`, sem recriar tabelas ou mudar IDs/vínculos. Antes de atualizar uma biblioteca importante, pare o servidor e faça uma cópia do SQLite. Apenas um arquivo novo recebe 5 músicas fictícias e 1 setlist com 3 faixas; esvaziar a biblioteca e reiniciar não reinserirá exemplos. Use `SETLIST_SEED=0` antes da primeira execução para começar vazio.
 
 As tabelas são `musicas`, `setlists` e `setlist_musicas`, com PK, FK, CHECK, UNIQUE e cascatas. O SQL recebe parâmetros separados dos comandos. O total é calculado a partir das músicas, sem gravar uma soma desatualizada na setlist.
 
@@ -135,7 +145,7 @@ docs/                          escopo, arquitetura, histórico e guia de apresen
 
 **O Root Directory agora é a raiz do repositório (`.`), e não `vercel/`.** Se já houver um projeto Vercel com a configuração anterior, atualize esse campo.
 
-Configure Framework Preset **Vite**, instalação `npm ci`, build `npm run build` e saída **`dist`**. Conecte o Neon e confirme `DATABASE_URL`. Execute `vercel/database/schema.sql` no banco novo/dedicado e faça deploy/redeploy. O frontend chama `/api/...`, encaminhado para a API Neon.
+Configure Framework Preset **Vite**, instalação `npm ci`, build `npm run build` e saída **`dist`**. Conecte o Neon e confirme `DATABASE_URL`. Execute `vercel/database/schema.sql` no banco dedicado (também nos bancos já existentes: ele adiciona os novos campos de forma idempotente) e faça deploy/redeploy. O frontend chama `/api/...`, encaminhado para a API Neon.
 
 Veja o [roteiro completo de deploy](vercel/README.md). Não use o schema PostgreSQL no arquivo SQLite local e não publique `.env` ou conexões com senha.
 

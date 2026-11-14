@@ -1,6 +1,8 @@
 # SETLIST — Guia para apresentar e responder à professora
 
-Preparado em **07/11/2026**, com base no código real e nos testes dessa data. Apresentação prevista: **16/11/2026**. Use as falas como apoio e pratique os exemplos no aplicativo.
+> Atualização em 14/11/2026: prazo até o fim de novembro. Além do CRUD explicado abaixo, a edição da música agora salva letra, cifra, tom, notas e a fonte da letra. A busca LRCLIB consulta um serviço externo; revisar/importar só preenche o formulário, e salvar faz POST/PUT no banco. Cifras são manuais. O modo de ensaio usa dados já carregados, na ordem do JOIN, com fonte/rolagem/navegação em estado React. Os requisitos SQL continuam iguais. A suíte atual teve 17 testes locais e 11 PostgreSQL/PGlite aprovados; evidências no histórico.
+
+Preparado em **07/11/2026** e atualizado em **14/11/2026**. Prazo vigente: **fim de novembro de 2026**. A data anterior era 16/11. Use as falas como apoio e pratique os exemplos no aplicativo.
 
 ## 1. O que está pronto de verdade
 

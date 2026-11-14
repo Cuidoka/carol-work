@@ -1,5 +1,7 @@
 # SETLIST — Especificação funcional e escopo acadêmico
 
+> Atualização autorizada em 14/11/2026: prazo até o fim de novembro; acabamento visual e recursos de ensaio fazem parte do escopo atual. O enunciado original e suas datas abaixo são preservados como registro. Critérios adicionais em `06_EVOLUCAO_E_QUALIDADE.md`.
+
 ## 1. Identidade do projeto
 
 **Nome:** SETLIST  

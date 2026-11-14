@@ -4,6 +4,7 @@ import { api } from '../lib/api.mjs';
 export function useSetlistData() {
   const [data, setData] = useState({ songs: [], setlists: [], selectedId: null, detail: null });
   const [loading, setLoading] = useState(true);
+  const [hasLoaded, setHasLoaded] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -19,6 +20,7 @@ export function useSetlistData() {
       if (request === sequence.current) {
         selectedRef.current = selectedId;
         setData({ songs, setlists, selectedId, detail });
+        setHasLoaded(true);
         setError('');
       }
     } catch (error) { if (request === sequence.current) setError(error.message); throw error; }
@@ -47,5 +49,5 @@ export function useSetlistData() {
   }, []);
 
   useEffect(() => { void reload().catch(() => {}); return () => { sequence.current++; }; }, [reload]);
-  return { ...data, loading, refreshing, busy, error, reload, selectSetlist, mutate, setError };
+  return { ...data, loading, hasLoaded, refreshing, busy, error, reload, selectSetlist, mutate, setError };
 }

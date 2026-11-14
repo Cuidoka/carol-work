@@ -1,5 +1,7 @@
 # SETLIST — Plano de trabalho, testes e apresentação
 
+> Prazo atualizado pelo usuário: fim de novembro de 2026. O cronograma de 16/11 abaixo é histórico. Os critérios novos e o plano vigente estão em `06_EVOLUCAO_E_QUALIDADE.md`.
+
 ## 1. Estratégia
 
 **Atualização React/Tailwind — 07/11/2026:** após a conversão autorizada, instale com `npm ci` na raiz. `npm start` compila e executa a versão local; `npm run dev` abre o desenvolvimento Vite em 5173 com proxy para a API. `npm run test:all` compila e executa as suítes SQLite e PostgreSQL/PGlite. Os cenários de aceitação abaixo continuam válidos. Para testar com comandos diretos do Node, compile primeiro com `npm run build`.
@@ -122,7 +124,7 @@ As datas são um plano de trabalho, não uma garantia de execução automática 
 ## 5. Roteiro de apresentação (aproximadamente 4–6 minutos)
 
 1. **Problema (30 s):** montar a ordem das músicas e somar a duração de um show manualmente pode gerar erros; o SETLIST centraliza isso.
-2. **Arquitetura (30 s):** HTML/CSS/JS chamam a API Node.js; o servidor grava e consulta SQLite.
+2. **Arquitetura (30 s):** componentes React com Tailwind chamam a API Node.js; o servidor grava e consulta SQLite.
 3. **Tabelas (40 s):** apresentar `musicas`, `setlists` e `setlist_musicas`; mostrar PK, FK e relação N:N.
 4. **CRUD (90 s):** cadastrar música, listar, editar e excluir uma música de teste; mencionar que setlists também possuem CRUD.
 5. **Relacionamento (60 s):** criar uma setlist, adicionar duas faixas e alterar sua ordem.

@@ -11,10 +11,12 @@
 }
 
 @layer base {
+  html { scrollbar-gutter: stable; }
+  html:has(dialog[open]) { overflow: hidden; }
   body { @apply m-0 bg-canvas font-sans text-sm text-ink antialiased; }
-  button, input, select { font: inherit; }
+  button, input, select, textarea { font: inherit; }
   button { @apply cursor-pointer disabled:cursor-default; }
-  button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible {
+  button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
     outline: 3px solid #84a13c;
     outline-offset: 3px;
   }
@@ -25,4 +27,38 @@
 @layer components {
   .field { @apply block w-full rounded-lg border border-line bg-white px-3 py-2.5 text-sm text-ink placeholder:text-gray-400 disabled:bg-gray-50; }
   .field-label { @apply block text-xs font-semibold; }
+  .material-tag { @apply rounded border border-[#e0e8d2] bg-[#f4f7ed] px-1.5 py-0.5 text-[9px] font-medium text-[#667e47]; }
+  .material-badge { @apply inline-flex items-center gap-1.5 rounded-lg border border-line bg-canvas px-3 py-2 text-[11px] text-[#60724f]; }
+}
+
+/* Movimento discreto, sem transições de tamanho que desloquem a leitura. */
+.interactive-button, nav button, .setlist-card, .track-row, .field {
+  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease, box-shadow 180ms ease, transform 180ms ease;
+}
+@media (hover: hover) {
+  .interactive-button:not(:disabled):hover { transform: translateY(-1px); box-shadow: 0 3px 10px #2330240d; }
+  .setlist-card:not(:disabled):hover { transform: translateY(-2px); box-shadow: 0 8px 20px #2330240b; }
+  .track-row:hover { background: #f8faf3; }
+  .field:not(:disabled):hover { border-color: #b5c59c; }
+}
+.interactive-button:not(:disabled):active { transform: translateY(0); }
+.view-enter { animation: appear 240ms ease-out; }
+.app-dialog[open] { animation: appear 180ms ease-out; }
+.app-dialog[open]::backdrop { animation: fade-in 180ms ease-out; }
+.toast-enter { animation: appear 180ms ease-out; }
+@keyframes appear { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+.rehearsal-dialog { width: 1000px; }
+.reader { max-height: 43dvh; min-height: 260px; overflow: auto; overscroll-behavior: contain; border: 1px solid #e5e9e1; border-radius: 12px; background: #fcfdf9; padding: 24px; tab-size: 4; }
+.reader pre { margin: 0; font-family: inherit; }
+.reader-chords { font-family: 'Cascadia Mono', Consolas, monospace; }
+.reader-chords pre { white-space: pre; overflow-wrap: normal; }
+.reader-size-14 { font-size: 14px; } .reader-size-16 { font-size: 16px; }
+.reader-size-18 { font-size: 18px; } .reader-size-20 { font-size: 20px; }
+.reader-size-22 { font-size: 22px; } .reader-size-24 { font-size: 24px; }
+.reader-size-26 { font-size: 26px; } .reader-size-28 { font-size: 28px; }
+.reader-size-30 { font-size: 30px; }
+@media (max-width: 640px) { .reader { padding: 16px; min-height: 220px; } }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
 }

@@ -1,3 +1,6 @@
+import material from '../../lib/song-material.cjs';
+import lyrics from '../../lib/lyrics.cjs';
+
 class HttpError extends Error {
   constructor(status, message) { super(message); this.status = status; }
 }
@@ -26,7 +29,7 @@ async function readJson(request) {
       const { done, value } = await reader.read();
       if (done) break;
       size += value.byteLength;
-      if (size > 65536) { await reader.cancel(); throw new HttpError(413, 'Os dados excedem o limite de 64 KB.'); }
+      if (size > 262144) { await reader.cancel(); throw new HttpError(413, 'Os dados excedem o limite de 256 KB.'); }
       chunks.push(value);
     }
   }
@@ -46,14 +49,18 @@ function songData(data) {
 const json = (data, status = 200) => Response.json(data, {
   status, headers: { 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' }
 });
+const defaultSearch = lyrics.createLyricsSearch();
 
 // Um cliente/uma transação lógica por requisição. Nenhum estado de dados em memória.
-export function createHandler(client) {
+export function createHandler(client, options = {}) {
+  const searchLyrics = options.lyricsFetch ? lyrics.createLyricsSearch(options.lyricsFetch) : defaultSearch;
   return async request => {
     let tx;
     try {
-      const route = new URL(request.url).pathname;
+      const url = new URL(request.url);
+      const route = url.pathname;
       const method = request.method;
+      if (route === '/api/letras' && method === 'GET') return json(await searchLyrics(url.searchParams));
       if (!route.startsWith('/api/')) throw new HttpError(404, 'Rota não encontrada.');
       const data = ['POST', 'PUT'].includes(method) ? await readJson(request) : null;
       tx = await client.connect();
@@ -85,16 +92,16 @@ export function createHandler(client) {
       if (route === '/api/musicas') {
         if (method === 'GET') return await finish((await execute('SELECT * FROM musicas ORDER BY lower(titulo), id')).rows);
         if (method === 'POST') {
-          const result = await execute('INSERT INTO musicas (titulo, artista, duracao_segundos) VALUES ($1, $2, $3) RETURNING id', songData(data));
+          const result = await execute('INSERT INTO musicas (titulo, artista, duracao_segundos, letra, cifra, tom, notas, letra_fonte) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id', [...songData(data), ...material.materialData(data)]);
           return await finish(await song(result.rows[0].id), 201);
         }
       }
       let match = route.match(/^\/api\/musicas\/([^/]+)$/);
       if (match && ['PUT', 'DELETE'].includes(method)) {
         const songId = id(match[1]);
-        await song(songId);
+        const current = await song(songId);
         if (method === 'PUT') {
-          await execute('UPDATE musicas SET titulo = $1, artista = $2, duracao_segundos = $3 WHERE id = $4', [...songData(data), songId]);
+          await execute('UPDATE musicas SET titulo = $1, artista = $2, duracao_segundos = $3, letra = $4, cifra = $5, tom = $6, notas = $7, letra_fonte = $8 WHERE id = $9', [...songData(data), ...material.materialData(data, current), songId]);
           return await finish(await song(songId));
         }
         await execute('DELETE FROM musicas WHERE id = $1', [songId]);

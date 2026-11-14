@@ -10,3 +10,4 @@ dados/*
 dist/
 .vercel/
 backups/
+.neon

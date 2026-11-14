@@ -16,6 +16,13 @@ CREATE TABLE IF NOT EXISTS setlists (
   criado_em TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Migração aditiva e idempotente para bancos já existentes. Não recria tabelas.
+ALTER TABLE musicas ADD COLUMN IF NOT EXISTS letra TEXT NOT NULL DEFAULT '' CHECK (length(letra) <= 20000);
+ALTER TABLE musicas ADD COLUMN IF NOT EXISTS cifra TEXT NOT NULL DEFAULT '' CHECK (length(cifra) <= 20000);
+ALTER TABLE musicas ADD COLUMN IF NOT EXISTS tom TEXT NOT NULL DEFAULT '' CHECK (length(tom) <= 12);
+ALTER TABLE musicas ADD COLUMN IF NOT EXISTS notas TEXT NOT NULL DEFAULT '' CHECK (length(notas) <= 2000);
+ALTER TABLE musicas ADD COLUMN IF NOT EXISTS letra_fonte TEXT NOT NULL DEFAULT '' CHECK (length(letra_fonte) <= 120);
+
 CREATE TABLE IF NOT EXISTS setlist_musicas (
   id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   setlist_id INTEGER NOT NULL REFERENCES setlists(id) ON DELETE CASCADE,

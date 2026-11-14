@@ -1,6 +1,10 @@
 dados
 backups
 .env*
+**/.env*
+.neon
+.agents
+.codex
 tests
 docs
 vercel/checks

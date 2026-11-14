@@ -4,6 +4,16 @@
 
 **Versão online:** `vercel/` contém o back-end **Neon/PostgreSQL** e é um workspace npm. A configuração de deploy agora está em `vercel.json` na **raiz**, com entrada em `api/index.mjs`. Root Directory na Vercel deve ser a raiz do repositório, não `vercel/`. O front-end React é compartilhado, mas os schemas e os dados dos dois bancos são separados.
 
+## Extensão de material de ensaio — 14/11/2026
+
+`musicas` ganhou campos opcionais TEXT NOT NULL com default vazio: `letra` e `cifra` (até 20.000 caracteres cada), `tom` (12), `notas` (2.000) e `letra_fonte` (120, URL de registro LRCLIB validada na API). As três tabelas e o modelo N:N permanecem. A API recebe esses campos em POST/PUT e os devolve na biblioteca e no JOIN de detalhes. PUTs antigos que omitem esses campos os preservam; string vazia os limpa. O corpo JSON agora aceita até 256 KB. `lib/song-material.cjs` compartilha a validação entre back-ends.
+
+SQLite: ao iniciar, inspeciona colunas e adiciona as ausentes numa transação, sem recriar tabelas. Bancos novos recebem o schema completo. PostgreSQL: reaplicar `vercel/database/schema.sql`, que usa ADD COLUMN IF NOT EXISTS. Testar migrações em cópias; fazer backup de dados importantes antes de atualizar. Nenhuma migração foi aplicada ao banco principal durante o desenvolvimento.
+
+`GET /api/letras?titulo=...&artista=...`: consulta externa ao LRCLIB pelo servidor, sem gravar dados nem abrir transação de banco; retorna até 8 opções com título/artista/álbum/duração/letra/fonte. Host fixo, query codificada, identificação do aplicativo, timeout de 10 s e bloqueio local de repetição respeitando Retry-After. A proteção é por processo, sem limite global entre instâncias Vercel. Sem API key; nenhuma alteração é enviada ao catálogo. Erros: 400 entrada inválida, 429 aguardar, 502 falha externa. `lib/lyrics.cjs` é compartilhado.
+
+O usuário escolhe uma versão, revisa a prévia, importa para o formulário e salva explicitamente. Não há busca de cifras nem geração de acordes. `Rehearsal.jsx` só lê os dados carregados; navegação, fonte e rolagem são estado de sessão do React. Conteúdo é renderizado como texto, sem injetar HTML.
+
 ## 1. Arquitetura adotada
 
 ```text

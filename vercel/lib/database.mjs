@@ -1,7 +1,6 @@
 import { Client } from '@neondatabase/serverless';
 
-export function getDatabase() {
-  const connectionString = process.env.DATABASE_URL;
+export function getDatabase(connectionString = process.env.DATABASE_URL) {
   if (!connectionString || !/^postgres(?:ql)?:\/\//.test(connectionString)) {
     throw new Error('Configure DATABASE_URL com a conexão PostgreSQL do Neon.');
   }

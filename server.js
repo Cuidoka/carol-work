@@ -5,6 +5,8 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { DatabaseSync } = require('node:sqlite');
 const { serveStatic } = require('./lib/static.cjs');
+const { materialData } = require('./lib/song-material.cjs');
+const { createLyricsSearch } = require('./lib/lyrics.cjs');
 
 class HttpError extends Error {
   constructor(status, message) { super(message); this.status = status; }
@@ -33,9 +35,9 @@ async function readJson(req) {
   const chunks = [];
   for await (const chunk of req) {
     size += chunk.length;
-    if (size <= 65536) chunks.push(chunk);
+    if (size <= 262144) chunks.push(chunk);
   }
-  if (size > 65536) throw new HttpError(413, 'Os dados enviados excedem o limite de 64 KB.');
+  if (size > 262144) throw new HttpError(413, 'Os dados enviados excedem o limite de 256 KB.');
   try {
     const data = JSON.parse(Buffer.concat(chunks).toString('utf8'));
     if (!data || typeof data !== 'object' || Array.isArray(data)) throw new Error();
@@ -50,6 +52,16 @@ function createApp(options = {}) {
   const db = new DatabaseSync(dbPath);
   db.exec(fs.readFileSync(path.join(__dirname, 'database', 'schema.sql'), 'utf8'));
   db.exec('PRAGMA busy_timeout = 5000');
+  // Migração aditiva e transacional: conserva IDs, registros e vínculos antigos.
+  const columns = new Set(db.prepare('PRAGMA table_info(musicas)').all().map(column => column.name));
+  db.exec('BEGIN');
+  try {
+    for (const [name, limit] of Object.entries({ letra: 20000, cifra: 20000, tom: 12, notas: 2000, letra_fonte: 120 })) {
+      if (!columns.has(name)) db.exec(`ALTER TABLE musicas ADD COLUMN ${name} TEXT NOT NULL DEFAULT '' CHECK (length(${name}) <= ${limit})`);
+    }
+    db.exec('COMMIT');
+  } catch (error) { db.exec('ROLLBACK'); db.close(); throw error; }
+  const searchLyrics = createLyricsSearch(options.lyricsFetch);
 
   function transaction(action) {
     db.exec('BEGIN');
@@ -113,21 +125,24 @@ function createApp(options = {}) {
       const url = new URL(req.url, 'http://localhost');
       const route = url.pathname;
       const method = req.method;
+      if (route === '/api/letras' && method === 'GET') return json(res, 200, await searchLyrics(url.searchParams));
       if (route === '/api/musicas') {
         if (method === 'GET') return json(res, 200, db.prepare('SELECT * FROM musicas ORDER BY titulo COLLATE NOCASE, id').all());
         if (method === 'POST') {
-          const values = songData(await readJson(req));
-          const result = db.prepare('INSERT INTO musicas (titulo, artista, duracao_segundos) VALUES (?, ?, ?)').run(...values);
+          const data = await readJson(req);
+          const values = [...songData(data), ...materialData(data)];
+          const result = db.prepare('INSERT INTO musicas (titulo, artista, duracao_segundos, letra, cifra, tom, notas, letra_fonte) VALUES (?, ?, ?, ?, ?, ?, ?, ?)').run(...values);
           return json(res, 201, requireSong(Number(result.lastInsertRowid)));
         }
       }
       let match = route.match(/^\/api\/musicas\/([^/]+)$/);
       if (match && ['PUT', 'DELETE'].includes(method)) {
         const songId = id(match[1]);
-        requireSong(songId);
+        const current = requireSong(songId);
         if (method === 'PUT') {
-          const values = songData(await readJson(req));
-          db.prepare('UPDATE musicas SET titulo = ?, artista = ?, duracao_segundos = ? WHERE id = ?').run(...values, songId);
+          const data = await readJson(req);
+          const values = [...songData(data), ...materialData(data, current)];
+          db.prepare('UPDATE musicas SET titulo = ?, artista = ?, duracao_segundos = ?, letra = ?, cifra = ?, tom = ?, notas = ?, letra_fonte = ? WHERE id = ?').run(...values, songId);
           return json(res, 200, requireSong(songId));
         }
         db.prepare('DELETE FROM musicas WHERE id = ?').run(songId);

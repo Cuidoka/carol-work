@@ -152,7 +152,7 @@ test('MVP integrado: HTTP → SQLite, consultas e reinicialização', async t =>
     await request(`/api/setlists/${other.id}/musicas`, 'POST', { musica_id: 9999 }, 404);
     await request(`/api/setlists/${other.id}/musicas`, 'POST', { musica_id: '1' }, 400);
     await request(`/api/setlists/${other.id}/musicas/9999`, 'DELETE', undefined, 404);
-    for (const [body, contentType, expected] of [['{', 'application/json', 400], ['{}', 'text/plain', 415], ['x'.repeat(70000), 'application/json', 413]]) {
+    for (const [body, contentType, expected] of [['{', 'application/json', 400], ['{}', 'text/plain', 415], ['x'.repeat(300000), 'application/json', 413]]) {
       const response = await fetch(`${app.url}/api/musicas`, { method: 'POST', headers: { 'Content-Type': contentType }, body });
       assert.equal(response.status, expected);
       assert.ok((await response.json()).erro);

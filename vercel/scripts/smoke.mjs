@@ -19,9 +19,11 @@ export async function runSmoke(baseUrl) {
   };
   try {
     const suffix = crypto.randomUUID();
+    const material = { letra: 'Texto autoral de validação\nSegunda linha', cifra: 'Am      F\nTexto autoral', tom: 'Am', notas: 'Repetir o final', letra_fonte: '' };
     for (const seconds of [200, 195]) {
-      const item = await request('/musicas', 'POST', { titulo: `Teste de deploy ${suffix}`, artista: 'Teste descartável', duracao_segundos: seconds }, 201);
+      const item = await request('/musicas', 'POST', { titulo: `Teste de deploy ${suffix}`, artista: 'Teste descartável', duracao_segundos: seconds, ...material }, 201);
       songs.add(item.id);
+      for (const [key, value] of Object.entries(material)) assert.equal(item[key], value, `Material não persistiu no cadastro: ${key}`);
     }
     const [a, b] = [...songs];
     await request(`/musicas/${a}`, 'PUT', { titulo: `Teste editado ${suffix}`, artista: 'Teste descartável', duracao_segundos: 250 });
@@ -35,6 +37,7 @@ export async function runSmoke(baseUrl) {
     assert.deepEqual(saved.musicas.map(item => item.id), [b, a]);
     assert.equal(saved.duracao_total_segundos, 445);
     assert.equal(saved.evento, 'Validação online');
+    for (const item of saved.musicas) for (const [key, value] of Object.entries(material)) assert.equal(item[key], value, `Material não persistiu no JOIN/edição: ${key}`);
     const summary = (await request('/setlists')).find(item => item.id === show.id);
     assert.equal(summary.quantidade_musicas, 2);
     assert.equal(summary.duracao_total_segundos, 445);
@@ -47,7 +50,7 @@ export async function runSmoke(baseUrl) {
     assert.ok((await request('/musicas')).some(item => item.id === b));
     await request(`/setlists/${show.id}`, 'GET', undefined, 404);
     await request(`/musicas/${b}`, 'DELETE'); songs.delete(b);
-    return 'PASSOU: CRUD, duplicidade, ordem, JOIN, COUNT/SUM, vínculos, cascatas e leitura entre requisições. Dados do teste removidos.';
+    return 'PASSOU: CRUD, letra/cifra/tom/notas, duplicidade, ordem, JOIN, COUNT/SUM, vínculos, cascatas e leitura entre requisições. Dados do teste removidos.';
   } finally {
     for (const itemId of setlists) await request(`/setlists/${itemId}`, 'DELETE').catch(() => console.error(`Não foi possível limpar a setlist de teste ID ${itemId}.`));
     for (const itemId of songs) await request(`/musicas/${itemId}`, 'DELETE').catch(() => console.error(`Não foi possível limpar a música de teste ID ${itemId}.`));

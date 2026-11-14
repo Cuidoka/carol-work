@@ -3,7 +3,7 @@ import { getDatabase } from '../lib/database.mjs';
 
 let client;
 try {
-  client = await getDatabase().connect();
+  client = await getDatabase(process.env.DATABASE_URL_UNPOOLED || process.env.DATABASE_URL).connect();
   // Não apaga tabelas nem importa o banco local. Use um banco Neon dedicado.
   const sql = await readFile(new URL('../database/schema.sql', import.meta.url), 'utf8');
   await client.query(sql);

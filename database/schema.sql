@@ -6,7 +6,12 @@ CREATE TABLE IF NOT EXISTS musicas (
   artista TEXT NOT NULL CHECK (length(trim(artista)) BETWEEN 1 AND 120),
   duracao_segundos INTEGER NOT NULL
     CHECK (typeof(duracao_segundos) = 'integer' AND duracao_segundos BETWEEN 1 AND 36000),
-  criado_em TEXT NOT NULL DEFAULT (datetime('now'))
+  criado_em TEXT NOT NULL DEFAULT (datetime('now')),
+  letra TEXT NOT NULL DEFAULT '' CHECK (length(letra) <= 20000),
+  cifra TEXT NOT NULL DEFAULT '' CHECK (length(cifra) <= 20000),
+  tom TEXT NOT NULL DEFAULT '' CHECK (length(tom) <= 12),
+  notas TEXT NOT NULL DEFAULT '' CHECK (length(notas) <= 2000),
+  letra_fonte TEXT NOT NULL DEFAULT '' CHECK (length(letra_fonte) <= 120)
 );
 
 CREATE TABLE IF NOT EXISTS setlists (

@@ -2,7 +2,7 @@
 
 ## Objetivo e autoridade
 
-Você trabalha em **SETLIST**, um projeto acadêmico simples de organizador de repertórios musicais, com apresentação em **16/11/2026**. O objetivo é cumprir o enunciado: **duas ou mais tabelas relacionadas, PK/FK, CRUD completo, JOIN, agregação ou subconsulta, e integração real de front-end/back-end/banco de dados**. A necessidade de dar nota aos requisitos prevalece sobre ambição de produto.
+Você trabalha em **SETLIST**, um projeto acadêmico simples de organizador de repertórios musicais, com entrega até o **fim de novembro de 2026**, conforme atualização do usuário. A data anterior de apresentação era 16/11/2026. O objetivo é cumprir o enunciado: **duas ou mais tabelas relacionadas, PK/FK, CRUD completo, JOIN, agregação ou subconsulta, e integração real de front-end/back-end/banco de dados**. A necessidade de dar nota aos requisitos prevalece sobre ambição de produto.
 
 Antes de tocar no código, leia `docs/00_COMECE_AQUI_CODEX.md`, `docs/01_PRODUTO_E_ESCOPO.md`, `docs/02_ARQUITETURA_BANCO_E_API.md`, `docs/03_ROTEIRO_IMPLEMENTACAO_E_TESTES.md` e `docs/04_HISTORICO_E_DECISOES.md`. Depois verifique o **código real**. Pergunte apenas sobre decisões que não podem ser resolvidas com segurança a partir do enunciado ou dos arquivos.
 
@@ -12,6 +12,7 @@ Antes de tocar no código, leia `docs/00_COMECE_AQUI_CODEX.md`, `docs/01_PRODUTO
 2. **Não reescreva o projeto por padrão.** Identifique o que já existe; preserve funcionalidades atuais ao corrigir falhas.
 3. **Não faça expansão de escopo** (login, IA, streaming, upload, Spotify, hospedagem, dashboards complexos) sem solicitação explícita.
 4. **Não altere a stack sem motivo demonstrado.** Em 07/11/2026, o usuário autorizou converter todo o front-end para **React + Tailwind + Vite**. A interface única fica em `src/` e é compilada em `dist/`. O back-end local continua Node.js nativo + SQLite; o back-end online fica em `vercel/` e usa Neon/PostgreSQL. O projeto usa npm workspaces e um único `package-lock.json` na raiz. Preserve os requisitos acadêmicos ao alterar essa arquitetura.
+   Em 14/11/2026, o usuário autorizou acabamento visual, letras/cifras, modo de ensaio e busca externa de letras com revisão. Consulte `docs/06_EVOLUCAO_E_QUALIDADE.md`.
 5. **Não apague ou substitua dados reais.** O arquivo `dados/*.sqlite` pode conter registros importantes. Use cópias ou bancos temporários para testes destrutivos. Não versionar arquivos de banco.
 6. **Preserve o modelo de dados** ou proponha migração explícita e segura; habilite as FKs e utilize SQL parametrizado.
 7. **Após mudar comportamento, teste.** Na resposta, relate o comando, cenário e resultado observados; o que não for testado deve estar explícito.
