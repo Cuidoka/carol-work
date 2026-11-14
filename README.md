@@ -62,23 +62,29 @@ Abra **http://127.0.0.1:5173**. O mesmo processo inicia a API SQLite em 3000 e o
 - Confirmação das exclusões, validação de duração e mensagens de erro/sucesso.
 - Letra e cifra por música, tom e notas de ensaio, persistidos no banco.
 - Busca de letras no LRCLIB com seleção da versão e revisão antes de salvar.
+- Busca de duração em Apple Music/iTunes e MusicBrainz, com seleção da gravação.
+- Importação de cifras prontas por colagem ou arquivo TXT/HTML, com revisão e fonte.
 - Modo de ensaio com navegação pela sequência, fonte ajustável e rolagem opcional.
 - Filtros de músicas com letra/cifra e movimentos discretos com suporte a movimento reduzido.
 - Interface responsiva implementada em componentes React com classes Tailwind.
 
-Duração é digitada em minutos:segundos e armazenada como inteiro de segundos. Ex.: 04:10 + 03:15 = **07:25**.
+Duração pode vir do catálogo ou ser digitada em minutos:segundos para material autoral. É armazenada como inteiro de segundos. Ex.: 04:10 + 03:15 = **07:25**.
 
 Remover uma faixa do repertório preserva a biblioteca. Excluir uma música remove seus vínculos. Excluir uma setlist preserva as músicas.
 
 ## Letras, cifras e ensaio
 
-Na edição de uma música, use **Dados da música** para título, artista, duração, tom e notas. Em **Letra e cifra**, preencha manualmente ou clique em **Buscar letra**, confira a versão/prévia e escolha **Usar esta letra**. A importação só persiste ao salvar a música. O catálogo LRCLIB pode não ter uma versão; erros de rede não impedem o cadastro manual. Cifras são inseridas manualmente e preservam os espaços de alinhamento.
+Na edição de uma música, informe título e artista em **Dados da música**, clique em **Buscar duração** e escolha a gravação. Apple Music/iTunes é o catálogo inicial; MusicBrainz é a alternativa. O campo é preenchido automaticamente ao escolher, sem substituir título/artista. Versões ao vivo podem ter tempos diferentes. Para músicas autorais, informe a duração manualmente.
+
+Em **Letra e cifra**, use **Buscar no Cifra Club** ou **Buscar no Letras** para localizar o material. Copie a cifra pronta, cole em **Cifra copiada**, informe o link da fonte se desejar e clique em **Revisar cifra colada → Usar esta cifra**. Não é necessário escrever os acordes. Também aceita arquivo TXT ou página HTML salva com um bloco `pre`; HTML não é executado. O link sozinho **não baixa** a cifra: não foi encontrada uma API pública documentada desses sites, e o acesso direto pelo servidor recebeu HTTP 403. A importação não contorna bloqueios ou áreas pagas. Mais detalhes em `docs/07_CATALOGOS_E_IMPORTACAO.md`.
+
+Para letras, clique em **Buscar letra**, confira a versão/prévia e escolha **Usar esta letra**. Se a duração estiver vazia, a duração válida do LRCLIB também a preenche; uma duração já informada é preservada. Todos os materiais ficam em rascunho até **Salvar música**. Catálogos podem falhar ou não ter a faixa; a edição manual continua disponível. Cifras preservam os espaços de alinhamento.
 
 Clique no título de uma música ou em **Iniciar ensaio** no repertório. Alterne letra/cifra, ajuste a fonte, ative/pare a rolagem ou navegue com ←/→. Esses controles só mudam a leitura; não alteram o conteúdo gravado. O material salvo pode ser lido sem consultar o catálogo novamente.
 
 ## Dados e integridade
 
-O banco local é criado automaticamente. Na primeira abertura com esta versão, uma migração aditiva adiciona `letra`, `cifra`, `tom`, `notas` e `letra_fonte`, sem recriar tabelas ou mudar IDs/vínculos. Antes de atualizar uma biblioteca importante, pare o servidor e faça uma cópia do SQLite. Apenas um arquivo novo recebe 5 músicas fictícias e 1 setlist com 3 faixas; esvaziar a biblioteca e reiniciar não reinserirá exemplos. Use `SETLIST_SEED=0` antes da primeira execução para começar vazio.
+O banco local é criado automaticamente. Na primeira abertura com esta versão, uma migração aditiva adiciona os campos de material e as fontes `letra_fonte`, `cifra_fonte` e `duracao_fonte`, sem recriar tabelas ou mudar IDs/vínculos. Antes de atualizar uma biblioteca importante, pare o servidor e faça uma cópia do SQLite. Apenas um arquivo novo recebe 5 músicas fictícias e 1 setlist com 3 faixas; esvaziar a biblioteca e reiniciar não reinserirá exemplos. Use `SETLIST_SEED=0` antes da primeira execução para começar vazio.
 
 As tabelas são `musicas`, `setlists` e `setlist_musicas`, com PK, FK, CHECK, UNIQUE e cascatas. O SQL recebe parâmetros separados dos comandos. O total é calculado a partir das músicas, sem gravar uma soma desatualizada na setlist.
 

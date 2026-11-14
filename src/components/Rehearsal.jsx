@@ -3,6 +3,7 @@ import Dialog from './Dialog.jsx';
 import { Button } from './Button.jsx';
 import Icon from './Icon.jsx';
 import { duration } from '../lib/format.mjs';
+import { sourceName } from '../../lib/music-sources.mjs';
 
 export default function Rehearsal({ songs, name, initialId, onClose, onEdit }) {
   const [index, setIndex] = useState(Math.max(0, songs.findIndex(song => song.id === initialId)));
@@ -39,6 +40,7 @@ export default function Rehearsal({ songs, name, initialId, onClose, onEdit }) {
       {content ? <pre key={`${song.id}-${tab}`} className="whitespace-pre-wrap break-words font-inherit leading-[1.9]">{content}</pre> : <div className="flex min-h-64 flex-col items-center justify-center gap-3 px-4 text-center"><Icon name="book" size={32} className="text-[#8ba165]" /><h4 className="text-lg font-semibold">{tab === 'cifra' ? 'Esta música ainda não tem cifra' : 'Esta música ainda não tem letra'}</h4><p className="max-w-sm text-xs leading-6 text-muted">Adicione o material na edição da música para acompanhar o ensaio por aqui.</p><Button icon="edit" onClick={() => onEdit(song)}>Adicionar {tab}</Button></div>}
     </div>
     {tab === 'letra' && song.letra_fonte && <a className="mt-2 inline-block text-[11px] text-muted underline underline-offset-4" href={song.letra_fonte} target="_blank" rel="noreferrer">Origem da letra: LRCLIB</a>}
+    {tab === 'cifra' && song.cifra_fonte && <a className="mt-2 inline-block text-[11px] text-muted underline underline-offset-4" href={song.cifra_fonte} target="_blank" rel="noreferrer">Origem da cifra: {sourceName(song.cifra_fonte)}</a>}
     {song.notas && <aside className="mt-4 rounded-xl border border-[#e3e9d3] bg-[#f6f9ec] p-4"><h4 className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-[#6f8053]">Notas de ensaio</h4><p className="whitespace-pre-wrap break-words text-xs leading-6">{song.notas}</p></aside>}
     <div className="mt-5 flex items-center justify-between gap-3 border-t border-line pt-4"><Button disabled={index === 0} onClick={() => go(index - 1)}>← Anterior</Button><span className="hidden text-[11px] text-muted sm:block">Use ← e → para trocar de faixa</span><Button variant="primary" disabled={index === songs.length - 1} onClick={() => go(index + 1)}>Próxima →</Button></div>
   </Dialog>;

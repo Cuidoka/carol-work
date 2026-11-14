@@ -11,7 +11,9 @@ CREATE TABLE IF NOT EXISTS musicas (
   cifra TEXT NOT NULL DEFAULT '' CHECK (length(cifra) <= 20000),
   tom TEXT NOT NULL DEFAULT '' CHECK (length(tom) <= 12),
   notas TEXT NOT NULL DEFAULT '' CHECK (length(notas) <= 2000),
-  letra_fonte TEXT NOT NULL DEFAULT '' CHECK (length(letra_fonte) <= 120)
+  letra_fonte TEXT NOT NULL DEFAULT '' CHECK (length(letra_fonte) <= 120),
+  cifra_fonte TEXT NOT NULL DEFAULT '' CHECK (length(cifra_fonte) <= 500),
+  duracao_fonte TEXT NOT NULL DEFAULT '' CHECK (length(duracao_fonte) <= 500)
 );
 
 CREATE TABLE IF NOT EXISTS setlists (

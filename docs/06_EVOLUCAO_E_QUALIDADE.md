@@ -4,7 +4,7 @@
 
 Em 14/11/2026, o usuário atualizou o prazo para o fim de novembro e pediu um site bem acabado, clean, com transições e hovers discretos e funcionalidades úteis para músicos. Confirmou a inclusão de busca externa de letras. A implementação foi concluída e validada localmente e na URL pública em 14/11/2026; este documento registra o escopo verificável no repositório.
 
-Os requisitos acadêmicos continuam obrigatórios. Não ampliar para contas, áudio, streaming ou integrações de cifras por scraping.
+Os requisitos acadêmicos continuam obrigatórios. Não ampliar para contas, áudio ou streaming. Em pedido posterior no mesmo dia, o usuário autorizou pesquisar integração de cifras prontas e duração automática; o resultado e os limites estão em `07_CATALOGOS_E_IMPORTACAO.md`. A entrega atual usa colagem/arquivo para cifras, sem contornar bloqueios dos provedores.
 
 ## Entrega implementada
 

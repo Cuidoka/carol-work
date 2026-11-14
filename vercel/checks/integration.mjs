@@ -66,10 +66,10 @@ test('Versão Neon: contrato HTTP e SQL em PostgreSQL/PGlite descartável', asyn
     a = await call(`/musicas/${a.id}`, 'PUT', { titulo: 'Teste editado', artista: 'Banda editada', duracao_segundos: 250 });
     assert.equal(a.duracao_segundos, 250);
     assert.equal((await call('/musicas')).length, 2);
-    const material = { letra: 'Texto próprio\nLinha 2', cifra: 'C     G\nTexto próprio', tom: 'Am', notas: 'Repetir final', letra_fonte: 'https://lrclib.net/api/get/1' };
+    const material = { letra: 'Texto próprio\nLinha 2', cifra: 'C     G\nTexto próprio', tom: 'Am', notas: 'Repetir final', letra_fonte: 'https://lrclib.net/api/get/1', cifra_fonte: 'https://www.cifraclub.com.br/banda/faixa/', duracao_fonte: 'https://music.apple.com/br/song/12' };
     a = await call(`/musicas/${a.id}`, 'PUT', { ...a, ...material });
     assert.equal(a.cifra, material.cifra); assert.equal(a.letra, material.letra);
-    for (const invalid of [{ letra: null }, { cifra: 'x'.repeat(20001) }, { tom: 42 }, { letra_fonte: 'https://evil.test' }]) {
+    for (const invalid of [{ letra: null }, { cifra: 'x'.repeat(20001) }, { tom: 42 }, { letra_fonte: 'https://evil.test' }, { cifra_fonte: 'javascript:alert(1)' }, { duracao_fonte: 'https://evil.test/a' }]) {
       await call(`/musicas/${a.id}`, 'PUT', { ...a, ...invalid }, 400);
     }
     show = await call('/setlists', 'POST', { nome: 'Show' }, 201);
@@ -130,6 +130,8 @@ test('Versão Neon: contrato HTTP e SQL em PostgreSQL/PGlite descartável', asyn
     assert.deepEqual(result.musicas.map(item => item.id), [b.id, a.id]);
     assert.equal(result.duracao_total_segundos, 445);
     assert.equal(result.musicas.find(song => song.id === a.id).cifra, 'C     G\nTexto próprio');
+    assert.equal(result.musicas.find(song => song.id === a.id).cifra_fonte, 'https://www.cifraclub.com.br/banda/faixa/');
+    assert.equal(result.musicas.find(song => song.id === a.id).duracao_fonte, 'https://music.apple.com/br/song/12');
   });
   await t.test('DELETE: vínculo preserva biblioteca; cascatas preservam outras entidades', async () => {
     await call(`/setlists/${show.id}/musicas/${a.id}`, 'DELETE');

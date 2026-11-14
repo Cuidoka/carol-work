@@ -1,5 +1,6 @@
 import material from '../../lib/song-material.cjs';
 import lyrics from '../../lib/lyrics.cjs';
+import catalog from '../../lib/catalog.cjs';
 
 class HttpError extends Error {
   constructor(status, message) { super(message); this.status = status; }
@@ -50,10 +51,12 @@ const json = (data, status = 200) => Response.json(data, {
   status, headers: { 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' }
 });
 const defaultSearch = lyrics.createLyricsSearch();
+const defaultCatalog = catalog.createCatalogSearch();
 
 // Um cliente/uma transação lógica por requisição. Nenhum estado de dados em memória.
 export function createHandler(client, options = {}) {
   const searchLyrics = options.lyricsFetch ? lyrics.createLyricsSearch(options.lyricsFetch) : defaultSearch;
+  const searchCatalog = options.catalogFetch ? catalog.createCatalogSearch(options.catalogFetch) : defaultCatalog;
   return async request => {
     let tx;
     try {
@@ -61,6 +64,7 @@ export function createHandler(client, options = {}) {
       const route = url.pathname;
       const method = request.method;
       if (route === '/api/letras' && method === 'GET') return json(await searchLyrics(url.searchParams));
+      if (route === '/api/catalogo' && method === 'GET') return json(await searchCatalog(url.searchParams));
       if (!route.startsWith('/api/')) throw new HttpError(404, 'Rota não encontrada.');
       const data = ['POST', 'PUT'].includes(method) ? await readJson(request) : null;
       tx = await client.connect();
@@ -92,7 +96,7 @@ export function createHandler(client, options = {}) {
       if (route === '/api/musicas') {
         if (method === 'GET') return await finish((await execute('SELECT * FROM musicas ORDER BY lower(titulo), id')).rows);
         if (method === 'POST') {
-          const result = await execute('INSERT INTO musicas (titulo, artista, duracao_segundos, letra, cifra, tom, notas, letra_fonte) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id', [...songData(data), ...material.materialData(data)]);
+          const result = await execute('INSERT INTO musicas (titulo, artista, duracao_segundos, letra, cifra, tom, notas, letra_fonte, cifra_fonte, duracao_fonte) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id', [...songData(data), ...material.materialData(data)]);
           return await finish(await song(result.rows[0].id), 201);
         }
       }
@@ -101,7 +105,7 @@ export function createHandler(client, options = {}) {
         const songId = id(match[1]);
         const current = await song(songId);
         if (method === 'PUT') {
-          await execute('UPDATE musicas SET titulo = $1, artista = $2, duracao_segundos = $3, letra = $4, cifra = $5, tom = $6, notas = $7, letra_fonte = $8 WHERE id = $9', [...songData(data), ...material.materialData(data, current), songId]);
+          await execute('UPDATE musicas SET titulo = $1, artista = $2, duracao_segundos = $3, letra = $4, cifra = $5, tom = $6, notas = $7, letra_fonte = $8, cifra_fonte = $9, duracao_fonte = $10 WHERE id = $11', [...songData(data), ...material.materialData(data, current), songId]);
           return await finish(await song(songId));
         }
         await execute('DELETE FROM musicas WHERE id = $1', [songId]);

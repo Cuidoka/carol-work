@@ -6,6 +6,8 @@
 
 ## Extensão de material de ensaio — 14/11/2026
 
+Extensão posterior no mesmo dia: `cifra_fonte` e `duracao_fonte` (TEXT, default vazio, até 500 caracteres) adicionadas de forma idempotente. Validação por hosts HTTPS permitidos, sem aceitar credenciais; PUT sem esses campos preserva valores. `GET /api/catalogo` consulta metadados/duração em iTunes ou MusicBrainz sem abrir transação no banco. Importação de cifras por colagem/arquivo ocorre no navegador e só persiste ao salvar a música. Detalhes no documento 07.
+
 `musicas` ganhou campos opcionais TEXT NOT NULL com default vazio: `letra` e `cifra` (até 20.000 caracteres cada), `tom` (12), `notas` (2.000) e `letra_fonte` (120, URL de registro LRCLIB validada na API). As três tabelas e o modelo N:N permanecem. A API recebe esses campos em POST/PUT e os devolve na biblioteca e no JOIN de detalhes. PUTs antigos que omitem esses campos os preservam; string vazia os limpa. O corpo JSON agora aceita até 256 KB. `lib/song-material.cjs` compartilha a validação entre back-ends.
 
 SQLite: ao iniciar, inspeciona colunas e adiciona as ausentes numa transação, sem recriar tabelas. Bancos novos recebem o schema completo. PostgreSQL: reaplicar `vercel/database/schema.sql`, que usa ADD COLUMN IF NOT EXISTS. Testar migrações em cópias; fazer backup de dados importantes antes de atualizar. Nenhuma migração foi aplicada ao banco principal durante o desenvolvimento.

@@ -19,7 +19,7 @@ export async function runSmoke(baseUrl) {
   };
   try {
     const suffix = crypto.randomUUID();
-    const material = { letra: 'Texto autoral de validação\nSegunda linha', cifra: 'Am      F\nTexto autoral', tom: 'Am', notas: 'Repetir o final', letra_fonte: '' };
+    const material = { letra: 'Texto autoral de validação\nSegunda linha', cifra: 'Am      F\nTexto autoral', tom: 'Am', notas: 'Repetir o final', letra_fonte: '', cifra_fonte: 'https://www.cifraclub.com.br/banda/faixa/', duracao_fonte: 'https://music.apple.com/br/song/12' };
     for (const seconds of [200, 195]) {
       const item = await request('/musicas', 'POST', { titulo: `Teste de deploy ${suffix}`, artista: 'Teste descartável', duracao_segundos: seconds, ...material }, 201);
       songs.add(item.id);

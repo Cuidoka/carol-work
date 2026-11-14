@@ -1,6 +1,6 @@
 # SETLIST — Guia para apresentar e responder à professora
 
-> Atualização em 14/11/2026: prazo até o fim de novembro. Além do CRUD explicado abaixo, a edição da música agora salva letra, cifra, tom, notas e a fonte da letra. A busca LRCLIB consulta um serviço externo; revisar/importar só preenche o formulário, e salvar faz POST/PUT no banco. Cifras são manuais. O modo de ensaio usa dados já carregados, na ordem do JOIN, com fonte/rolagem/navegação em estado React. Os requisitos SQL continuam iguais. A suíte atual teve 17 testes locais e 11 PostgreSQL/PGlite aprovados; evidências no histórico.
+> Atualização em 14/11/2026: prazo até o fim de novembro. Além do CRUD explicado abaixo, a edição salva letra, cifra, tom, notas e fontes. LRCLIB fornece letras; iTunes/MusicBrainz fornecem duração por gravação. Cifras prontas podem ser copiadas do Cifra Club/Letras e importadas por colagem/TXT/HTML com revisão, sem redigitar; não há download automático por link. Importar preenche o formulário, e Salvar faz POST/PUT no banco. O ensaio usa os dados já carregados, na ordem do JOIN, com fonte/rolagem/navegação em estado React. Os requisitos SQL continuam iguais. A suíte atual teve 23 testes locais e 11 PostgreSQL/PGlite aprovados; evidências no histórico e métodos no documento 07.
 
 Preparado em **07/11/2026** e atualizado em **14/11/2026**. Prazo vigente: **fim de novembro de 2026**. A data anterior era 16/11. Use as falas como apoio e pratique os exemplos no aplicativo.
 
@@ -272,7 +272,7 @@ Abra `http://localhost:3000`. `npm start` compila antes de iniciar. `node server
 
 **“Como foi testado?”**
 
-> “Após a conversão React de 07/11, passaram 13 testes locais e 10 testes PostgreSQL/PGlite. O build também passou. Os fluxos React foram executados no navegador com banco separado, incluindo formulários, ordem, duração e exclusões. A versão Neon ainda precisa de validação online.”
+> “Na revisão de 14/11, passaram 23 testes locais e 11 PostgreSQL/PGlite. O build também passou. CRUD, JOIN, agregações e persistência foram testados com bancos descartáveis e no Neon real. A publicação anterior também passou por smoke e navegador na URL pública. As novas funções de catálogo/importação têm evidências próprias no histórico; testes de rede e de interface são separados dos testes com respostas controladas.”
 
 ## 15. Cuidados com a explicação
 

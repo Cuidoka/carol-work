@@ -31,12 +31,12 @@ test('Migração SQLite preserva banco anterior, material persiste e atualizaç�
   };
   let [song] = await call('/musicas');
   assert.equal(song.id, 7); assert.equal(song.letra, ''); assert.equal(song.criado_em, '2026-11-01');
-  const material = { letra: 'Texto próprio\nSegunda linha <script>', cifra: 'C     G\nTexto próprio', tom: 'C', notas: 'Entrar na segunda volta', letra_fonte: 'https://lrclib.net/api/get/1' };
+  const material = { letra: 'Texto próprio\nSegunda linha <script>', cifra: 'C     G\nTexto próprio', tom: 'C', notas: 'Entrar na segunda volta', letra_fonte: 'https://lrclib.net/api/get/1', cifra_fonte: 'https://www.cifraclub.com.br/banda/faixa/', duracao_fonte: 'https://music.apple.com/br/song/12' };
   song = await call('/musicas/7', 'PUT', { ...song, ...material });
   for (const [key, value] of Object.entries(material)) assert.equal(song[key], value);
   // Cliente anterior envia apenas dados básicos: material deve sobreviver.
   await call('/musicas/7', 'PUT', { titulo: 'Anterior editada', artista: 'Banda', duracao_segundos: 250 });
-  for (const invalid of [{ letra: null }, { cifra: 'x'.repeat(20001) }, { notas: 'x'.repeat(2001) }, { letra_fonte: 'javascript:alert(1)' }, { tom: 42 }]) {
+  for (const invalid of [{ letra: null }, { cifra: 'x'.repeat(20001) }, { notas: 'x'.repeat(2001) }, { letra_fonte: 'javascript:alert(1)' }, { tom: 42 }, { cifra_fonte: 'https://evil.example/x' }, { duracao_fonte: 'javascript:alert(1)' }]) {
     await call('/musicas/7', 'PUT', { ...song, ...invalid }, 400);
   }
   await stop(); await start();
