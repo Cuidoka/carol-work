@@ -433,3 +433,28 @@ Instância em `http://localhost:3012`, banco separado `C:/Users/siltu/AppData/Lo
 **Proteção da publicação:** `.vercelignore` ampliado para ignorar env em qualquer diretório, `.neon`, `.agents` e `.codex`, além de bancos/backups existentes. Revisão Git confirmou nenhum banco, arquivo de conexão ou contexto `.neon` entre arquivos a publicar. Nenhum segredo em argumentos de linha de comando; o valor DATABASE_URL foi passado por stdin ao CLI Vercel.
 
 **Estado neste registro:** banco/configuração prontos e testes locais/remotos aprovados. A publicação do código novo e a verificação da URL pública ainda serão executadas; não antecipar sua aprovação.
+
+## 2026-11-14 — Publicação e validação final na Vercel/Neon
+
+**Publicação:** commit **f02fa75** (`feat: adicionar letras, cifras e ensaio com Neon`) enviado à main de Cuidoka/carol-work. O GitHub acionou deployment **dpl_JAV6wgBPPr4e77scM44KEEkjWafa**, URL técnica `carol-work-4blpzfhmd-cuidokas-projects.vercel.app`; a API Vercel confirmou **READY** e SHA correspondente. Endereço público: **https://carol-work.vercel.app/**. O banco conectado é o projeto Neon novo escolhido pelo usuário; projeto antigo e SQLite local preservados.
+
+**Testes públicos executados:**
+
+- GET `/`: HTTP 200, build novo. GET `/api/musicas`: HTTP 200, sem erro de configuração. O 503 anterior está resolvido.
+- `npm run smoke --workspace setlist-vercel -- https://carol-work.vercel.app`: **passou**. Criou seus próprios IDs e validou cadastro/leitura/edição/exclusão de músicas e repertórios, letras/cifras/tom/notas persistidos, compatibilidade de edição sem apagar material, vínculo N:N, rejeição de duplicata, ordem, JOIN, COUNT/SUM (2/445), remoção de vínculo, cascatas e leitura entre requisições. Limpou somente seus registros.
+- GET `/api/letras` pela função publicada para Tempo Perdido/Legião Urbana: HTTP 200, 8 opções; primeira com 763 caracteres. Busca real ao LRCLIB a partir da Vercel, sem mock.
+- GETs `/.env.local`, `/vercel/.env.local`, `/.neon` e `/database/schema.sql`: **404**, sem conexão PostgreSQL exposta.
+
+**Navegador no endereço público, sem simulação de API:**
+
+1. Criadas Validação visual A (04:10, artista Teste descartável SETLIST, Am, notas e letra/cifra autorais) e B (03:15). Criado Ensaio de validação online, com evento identificando teste, e adicionadas as duas faixas.
+2. B movida para cima. Após recarregar: ordem **B → A**, total **07:25** e material de A preservado. Leitor de A mostrou faixa 2/2 com início em **03:15**, tom, cifra alinhada e notas. Alternância para letra e aumento para 22 px funcionaram.
+3. Nova música de busca: título/artista reais usados só no formulário, sem gravar a faixa. Oito versões retornaram. Selecionada prévia com textarea ainda em 0 caracteres; Usar esta letra preencheu 763; Cancelar fechou sem criar registro. Letras reais não foram incluídas no código/capturas ou persistidas no banco principal.
+4. Filtro Com cifra retornou somente A. Conferidos layout do leitor/formulário/biblioteca em **390×844** e repertório/leitor em **1366×900**, sem transbordamento horizontal do documento. Hover real do card confirmado: `:hover=true`, deslocamento `translateY(-2px)` e sombra discreta; transições computadas de 160/180 ms. Console sem erros/avisos nas inspeções finais.
+5. Capturas `setlist-online-repertorio.jpg` e `setlist-online-neon.jpg` na pasta de visualizações do chat, com texto autoral e dados de teste identificados. Viewport temporária restaurada.
+6. Limpeza por API somente dos IDs da interface: músicas **3/4** e setlist **2**, conferindo título/artista/evento antes de excluir e preservando quaisquer registros alheios. Após a limpeza, GETs retornaram biblioteca/repertórios vazios. Consulta direta de leitura ao Neon principal confirmou **0 músicas, 0 setlists, 0 vínculos, 3 PKs e 2 FKs com cascata**.
+7. Removido somente o branch descartável `br-rapid-mouse-benb9wxa`, após validar ID/nome e que não era principal. `main` preservado. Página pública recarregada após limpeza: sem alerta, criação habilitada; aba marcada como entrega para o usuário.
+
+**Auditoria de conclusão da meta:** transições/hovers clean, material musical editável, busca com revisão, filtros e modo de ensaio estão implementados e demonstrados; estrutura acadêmica e SQLite preservados. Regressão final: **28 testes locais/PGlite aprovados**, complementados por teste de transporte Neon real, smoke público e navegador público. Documentos atuais atualizados para não manter o diagnóstico 503 como estado vigente. Credenciais, arquivos de contexto e bancos continuam fora do Git/deploy estático.
+
+**Limites reais:** não foram realizados teste de carga, auditoria integral WCAG, outros navegadores ou teste de usuários simultâneos. Movimento reduzido foi conferido no CSS compilado, sem emular a preferência do SO. Exclusões online foram exercitadas via API; a interface de exclusão foi validada localmente nos ciclos anteriores. O app conserva o escopo acadêmico sem contas de usuário e compartilha o mesmo banco entre visitantes. A meta de software deste ciclo foi atendida; ensaio oral e futuras melhorias são atividades posteriores.

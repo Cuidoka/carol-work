@@ -7,7 +7,7 @@ O front-end foi convertido para **React + Tailwind CSS + Vite**, conforme solici
 - **Local:** Node.js nativo + SQLite em `dados/setlist.sqlite`.
 - **Online:** Vercel Functions + Neon/PostgreSQL, com API no workspace `vercel/`.
 
-Os bancos são independentes. O modelo de três tabelas e as rotas de CRUD foram preservados. A integração online ainda precisa de configuração e validação no deploy real.
+Os bancos são independentes. O modelo de três tabelas e as rotas de CRUD foram preservados. A versão online está publicada e foi validada com Neon real em **14/11/2026**: **https://carol-work.vercel.app/**. As evidências e os limites estão no histórico.
 
 ## Requisitos e instalação
 

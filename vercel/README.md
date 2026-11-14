@@ -2,11 +2,11 @@
 
 A interface React/Tailwind fica em **`src/` na raiz** e é usada tanto pelo SQLite local quanto por esta API Neon. A pasta `vercel/` é um workspace de back-end, não mais um site autônomo.
 
-## Diagnóstico do endereço informado — 14/11/2026
+## Publicado e validado — 14/11/2026
 
-`https://carol-work.vercel.app/` abriu com HTTP 200, mas `/api/musicas` e `/api/setlists` retornaram 503 com mensagem de configuração do banco. Ainda não foi possível validar CRUD ou persistência online. Conferir conexão Neon e `DATABASE_URL` no ambiente **Production**, inicializar/atualizar o schema e fazer redeploy. O painel desta sessão está sem login; a causa específica não foi confirmada nos logs/variáveis. O deploy observado ainda não contém letras/cifras/modo de ensaio da versão local. Evidências detalhadas no histórico.
+**https://carol-work.vercel.app/** está funcionando com o projeto Neon separado SETLIST, branch main. Validado primeiro em branch descartável e depois na URL pública: CRUD, letra/cifra/tom/notas, duplicidade, ordem, JOIN, COUNT/SUM, vínculos, cascatas e persistência entre requisições. No navegador: gravação e recarga, soma 07:25, busca com revisão/importação, ensaio e layout móvel/desktop. Registros e branch de teste foram removidos.
 
-**Retomada:** projeto Neon separado SETLIST criado; schema e smoke com material musical passaram no Neon real antes da aplicação ao branch principal. Acesso Vercel obtido e causa confirmada: havia DATABASE_URL_DATABASE_URL, mas faltava DATABASE_URL. Nome correto cadastrado como segredo em Production; variáveis anteriores preservadas. Node 24/Vite/build alinhados ao repositório. A publicação do código atualizado e a validação pública ainda precisam ser confirmadas no histórico.
+O 503 inicial foi causado pela ausência do nome exato DATABASE_URL: existiam variáveis com prefixo duplicado. DATABASE_URL correta foi adicionada como Secret em Production, preservando as anteriores. Projeto alinhado a Node 24/Vite e build da raiz. Histórico registra os comandos, o commit e a evidência de deployment READY.
 
 ## Atualizar bancos existentes — letras e cifras
 
@@ -84,6 +84,6 @@ API Neon com SQL parametrizado, transações e FKs; interface React única e res
 
 Sem login no aplicativo, visitantes autorizados à URL compartilham registros. Use dados fictícios e a proteção de deploy adequada ao público da demonstração. O escopo não inclui contas de usuário ou áudio.
 
-**Nenhum deploy foi realizado por esta sessão.** O endereço fornecido pelo usuário foi testado, com falha 503 nas rotas de dados; não há validação bem-sucedida contra Neon remoto. O build e os testes locais não substituem essa etapa.
+**Deploy realizado e validado nesta sessão:** publicação automática da main do GitHub na Vercel e smoke completo na URL pública aprovados, com PostgreSQL/Neon real. Não foi realizada auditoria de carga/múltiplos usuários ou acessibilidade completa.
 
 Referências: [Neon na Vercel](https://neon.com/docs/guides/vercel-managed-integration), [driver Neon](https://github.com/neondatabase/serverless), [Tailwind com Vite](https://tailwindcss.com/docs/installation/using-vite).

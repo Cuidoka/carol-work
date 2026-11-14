@@ -2,7 +2,7 @@
 
 ## Meta autorizada
 
-Em 14/11/2026, o usuário atualizou o prazo para o fim de novembro e pediu um site bem acabado, clean, com transições e hovers discretos e funcionalidades úteis para músicos. Confirmou a inclusão de busca externa de letras. A meta está ativa no chat e este documento registra o escopo verificável no repositório.
+Em 14/11/2026, o usuário atualizou o prazo para o fim de novembro e pediu um site bem acabado, clean, com transições e hovers discretos e funcionalidades úteis para músicos. Confirmou a inclusão de busca externa de letras. A implementação foi concluída e validada localmente e na URL pública em 14/11/2026; este documento registra o escopo verificável no repositório.
 
 Os requisitos acadêmicos continuam obrigatórios. Não ampliar para contas, áudio, streaming ou integrações de cifras por scraping.
 
@@ -36,18 +36,26 @@ Os requisitos acadêmicos continuam obrigatórios. Não ampliar para contas, áu
 3. No Neon, fazer backup/branch e reaplicar `vercel/database/schema.sql` antes do deploy novo. Não usar o schema SQLite no Neon.
 4. Verificar na URL real a edição e persistência dos novos campos, além de busca, ensaio e CRUD.
 
-## Plano vigente
+## Conclusão verificada — 14/11/2026
 
-- 14–20/11: implementar e validar acabamento e fluxo completo de material/ensaio. As evidências já executadas estão no histórico.
-- 21–26/11: validar no deploy real com Neon, resolver falhas observadas e recolher feedback visual do usuário.
-- 27–30/11: revisão final de conteúdo, responsividade e ensaio da apresentação; congelar mudanças que coloquem a demonstração em risco.
+**Publicado:** https://carol-work.vercel.app/ — Vercel + Neon real, projeto SETLIST separado. A conexão que causava 503 foi corrigida; as novas funcionalidades estão disponíveis.
 
-As datas são um plano, não execução automática em segundo plano. O usuário forneceu `https://carol-work.vercel.app/`: o frontend abre, mas músicas/repertórios retornaram 503 no primeiro diagnóstico. Conexão Neon e publicação das mudanças novas ainda precisam de configuração/verificação. Uma suíte PGlite aprovada não comprova infraestrutura remota. Evidências e correção local do estado indisponível no histórico.
+| Critério | Resultado observado |
+|---|---|
+| Transições/hovers | CSS compilado e hover real do card no site, com deslocamento de 2 px e sombra; desktop e celular conferidos |
+| Letra/cifra/tom/notas | Cadastro/edição/leitura no smoke remoto; formulário e leitura após refresh no navegador público |
+| Busca de letras | 8 opções pela Vercel; prévia e importação de 763 caracteres pela interface; cancelamento sem gravar |
+| Falhas do catálogo | Testes controlados de vazio, falha, resposta inválida e 429; API/edição manual independentes |
+| Ensaio | Cifra/letra, fonte, sequência e início acumulado no site; rolar/pausar e teclado testados localmente |
+| Filtros | Biblioteca pública com filtro Com cifra retornando a faixa correta |
+| Preservação | Migrações antigas em SQLite/PGlite; Neon separado, schema testado em branch antes de main; SQLite e projeto Neon anterior preservados |
+| Requisitos acadêmicos | 28 testes de regressão, smoke no Neon real e smoke pela URL pública, incluindo CRUD, JOIN, COUNT/SUM, FKs e cascatas |
+| Entrega | Commit f02fa75 enviado ao GitHub; deployment READY observado; credenciais ignoradas e arquivos privados 404 |
 
-O usuário confirmou que ainda não conectou o Neon. As integrações de conta Vercel/Neon continuam sem conexão confirmada nesta conversa. A revisão local adicional corrigiu foco dos diálogos e bloqueio da rolagem de fundo; o avanço online depende de acesso autenticado e conexão do banco.
+Registros e branch de teste foram removidos. A biblioteca online começa vazia, pronta para os dados do usuário. Capturas e detalhes completos no histórico.
 
-**Estado da meta após revalidação:** bloqueada na configuração/publicação/validação online. GETs das duas rotas de dados continuam retornando 503 e não há integração autenticada disponível. A implementação local foi preservada; a meta completa só poderá ser concluída após conexão do banco e validação da versão publicada. Retomar quando o usuário concluir a conexão ou disponibilizar acesso pelas integrações.
+O plano previa implementação até 20/11, validação online até 26/11 e revisão final até 30/11. As etapas de software foram antecipadas e verificadas em 14/11. Ensaiar a apresentação permanece uma atividade do aluno. Não há execução automática agendada para essas datas.
 
-**Avanço posterior no acesso:** por solicitação do usuário, Neon CLI 9.5.0 foi instalado e autenticado via GitHub; plugin Codex neon-postgres 3.0.8 com skills/MCP instalado e habilitado. O CLI já permite operações autenticadas; o plugin precisa de reinício do agente e pode pedir consentimento OAuth próprio. Ainda é necessário criar/vincular o banco correto, configurar a Vercel e validar o deploy. Detalhes, backup e verificações no histórico.
+**Limites da evidência:** um navegador; sem carga/múltiplos usuários ou auditoria WCAG completa. Movimento reduzido conferido no CSS, sem emulação do SO. Exclusões públicas testadas por API e interface de exclusão testada localmente. O escopo segue sem contas de usuário; visitantes compartilham o banco.
 
 Referência consultada: [API oficial LRCLIB](https://lrclib.net/docs). Sem API key para a consulta anônima implementada. Não publicar letras de teste em documentos ou capturas de entrega: as capturas usam texto próprio.
