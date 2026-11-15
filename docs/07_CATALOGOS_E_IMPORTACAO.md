@@ -12,18 +12,20 @@ Em 14/11/2026, o usuário pediu cifras prontas, principalmente do Cifra Club, pe
 | Letra | API LRCLIB existente | Selecionar prévia e usar; preenche duração se ainda vazia |
 | Cifra pronta | Colar conteúdo copiado no site; importar TXT ou HTML com `pre` | Prévia explícita, depois Usar esta cifra |
 | Localizar material | Buscas do Cifra Club e Letras em nova aba | Usuário escolhe o resultado/versão |
+| Abrir a cifra no ensaio/show | Salvar apenas Link da cifra; botão destacado no leitor | Abre a URL salva em outra aba, mesmo sem texto importado |
 | Música autoral | Edição manual dos campos atuais | Salvar música |
 
-**Limite importante:** não existe integração oficial Cifra Club/Letras habilitada neste projeto. Não foi localizada uma API pública documentada deles na pesquisa. O servidor recebeu 403; não foi instalado scraping via proxy, CAPTCHA solver ou API privada. A importação por link sem copiar/selecionar arquivo não foi implementada. Cifra pronta não significa acordes gerados nem transposição automática.
+**Limite importante:** não existe integração oficial Cifra Club/Letras habilitada neste projeto. Não foi localizada uma API pública documentada deles na pesquisa. O servidor recebeu 403; não foi instalado scraping via proxy, CAPTCHA solver ou API privada. O link salvo abre a página externa; não baixa seu texto automaticamente. Cifra pronta não significa acordes gerados nem transposição automática.
 
 ## Como usar
 
 1. Nova música → informar título e artista.
 2. Buscar duração → conferir artista/álbum/versão → Usar duração. Para composição autoral, preencher manualmente.
 3. Letra e cifra → Buscar no Cifra Club ou Letras → escolher a página e copiar apenas o material desejado.
-4. Colar em Cifra copiada, informar opcionalmente a URL → Revisar cifra colada → Usar esta cifra. Também pode selecionar TXT ou HTML salvo com bloco `pre`.
-5. Buscar letra no LRCLIB se necessário. Esse catálogo não fornece acordes.
-6. Revisar e Salvar música. Cancelar descarta o rascunho; as buscas não cadastram faixas.
+4. Para usar a página externa, preencher **Link da cifra** e salvar a música, sem precisar copiar texto. Em Iniciar ensaio, clicar em **Abrir cifra no Cifra Club** (ou no nome da fonte salva). Abre outra aba e mantém o SETLIST aberto. O botão também aparece com letra selecionada ou com cifra já importada.
+5. Para guardar o texto, colar em Cifra copiada → Revisar cifra colada → Usar esta cifra. Também pode selecionar TXT ou HTML salvo com bloco `pre`. A importação preserva o link preenchido.
+6. Buscar letra no LRCLIB se necessário. Esse catálogo não fornece acordes.
+7. Revisar e Salvar música. Cancelar descarta o rascunho; as buscas não cadastram faixas. Para mudar/remover o link, editar o mesmo campo e salvar.
 
 Texto deve ter até 20.000 caracteres. Arquivos até 2 MB, extensões TXT/HTML/HTM, em UTF-8. HTML sem `pre` recebe instrução de copiar como texto; PDF, imagens e extração OCR não são suportados. Não se deve colar a página inteira com menus e anúncios.
 

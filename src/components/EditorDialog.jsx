@@ -5,7 +5,7 @@ import { duration, parseDuration } from '../lib/format.mjs';
 import LyricsSearch from './LyricsSearch.jsx';
 import CatalogSearch from './CatalogSearch.jsx';
 import ChartImport from './ChartImport.jsx';
-import { sourceName } from '../../lib/music-sources.mjs';
+import { sourceName, sourceURL } from '../../lib/music-sources.mjs';
 
 export default function EditorDialog({ editor, busy, onClose, onSave }) {
   const song = editor.type === 'song';
@@ -22,8 +22,10 @@ export default function EditorDialog({ editor, busy, onClose, onSave }) {
     try {
       if (song && (!values.titulo.trim() || !values.artista.trim())) { setTab('details'); throw new Error('Informe o título e o artista da música.'); }
       if (song) { try { parseDuration(values.duracao); } catch (error) { setTab('details'); throw error; } }
+      const chartLink = song ? sourceURL(values.cifra_fonte.trim()) : '';
+      if (song && values.cifra_fonte.trim() && !chartLink) { setTab('material'); throw new Error('Informe um link HTTPS válido de Cifra Club, Letras, Cifras.com.br, E-Chords ou Ultimate Guitar.'); }
       if (!song && !values.nome.trim()) throw new Error('Informe o nome do repertório.');
-      const data = song ? { titulo: values.titulo.trim(), artista: values.artista.trim(), duracao_segundos: parseDuration(values.duracao), letra: values.letra, cifra: values.cifra, tom: values.tom.trim(), notas: values.notas, letra_fonte: values.letra_fonte, cifra_fonte: values.cifra_fonte, duracao_fonte: values.duracao_fonte }
+      const data = song ? { titulo: values.titulo.trim(), artista: values.artista.trim(), duracao_segundos: parseDuration(values.duracao), letra: values.letra, cifra: values.cifra, tom: values.tom.trim(), notas: values.notas, letra_fonte: values.letra_fonte, cifra_fonte: chartLink, duracao_fonte: values.duracao_fonte }
         : { nome: values.nome.trim(), evento: values.evento.trim() };
       await onSave(data);
     } catch (error) { setError(error.message); }
@@ -41,7 +43,7 @@ export default function EditorDialog({ editor, busy, onClose, onSave }) {
       {area('notas', 'Notas de ensaio (opcional)', 'Ex.: Entrada só com voz. Repetir o refrão no final.', 2000)}
       </div>
       <div hidden={tab !== 'material'} className="space-y-5">
-        <ChartImport title={values.titulo} artist={values.artista} hasChart={!!values.cifra} disabled={busy} onUse={record => { setValues(current => ({ ...current, cifra: record.cifra, cifra_fonte: record.fonte, titulo: current.titulo || record.titulo, artista: current.artista || record.artista })); setNotice('Cifra pronta importada para o formulário. Revise e salve a música para gravar.'); }} />
+        <ChartImport title={values.titulo} artist={values.artista} hasChart={!!values.cifra} source={values.cifra_fonte} onSourceChange={value => setValues(current => ({ ...current, cifra_fonte: value }))} disabled={busy} onUse={record => { setValues(current => ({ ...current, cifra: record.cifra, cifra_fonte: record.fonte, titulo: current.titulo || record.titulo, artista: current.artista || record.artista })); setNotice('Cifra pronta importada para o formulário. Revise e salve a música para gravar.'); }} />
         <LyricsSearch title={values.titulo} artist={values.artista} hasLyrics={!!values.letra} disabled={busy} onUse={record => { setValues(current => ({ ...current, letra: record.letra, letra_fonte: record.fonte, ...(!current.duracao && Number.isInteger(record.duracao_segundos) && record.duracao_segundos > 0 && record.duracao_segundos <= 36000 ? { duracao: duration(record.duracao_segundos), duracao_fonte: record.fonte } : {}) })); setNotice('Letra importada. Se a duração estava vazia, ela também foi preenchida com a versão do LRCLIB.'); }} />
         {area('letra', 'Letra (opcional)', 'Cole a letra ou use a busca acima…', 20000)}
         {values.letra_fonte && <p className="text-[11px] text-muted">Origem: <a href={values.letra_fonte} target="_blank" rel="noreferrer" className="underline underline-offset-4">LRCLIB</a>. Você pode revisar o texto antes de salvar.</p>}

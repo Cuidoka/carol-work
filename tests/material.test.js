@@ -48,4 +48,8 @@ test('Migração SQLite preserva banco anterior, material persiste e atualizaç�
   assert.equal(app.db.prepare('PRAGMA integrity_check').get().integrity_check, 'ok');
   song = await call('/musicas/7', 'PUT', { ...song, letra: '', cifra: '', notas: '', tom: '', letra_fonte: '' });
   assert.equal(song.letra, ''); assert.equal(song.cifra, '');
+  assert.equal(song.cifra_fonte, material.cifra_fonte);
+  await stop(); await start();
+  const linkOnly = (await call('/setlists/4')).musicas[0];
+  assert.equal(linkOnly.cifra, ''); assert.equal(linkOnly.cifra_fonte, material.cifra_fonte);
 });

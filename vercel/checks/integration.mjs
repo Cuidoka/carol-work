@@ -61,8 +61,9 @@ test('Versão Neon: contrato HTTP e SQL em PostgreSQL/PGlite descartável', asyn
     a = await call('/musicas', 'POST', { titulo: 'Teste 01', artista: 'Banda A', duracao_segundos: 200 }, 201);
     b = await call('/musicas', 'POST', { titulo: "Teste ' <script>", artista: 'Banda B', duracao_segundos: 195, cifra: 'G    D', notas: 'Teste' }, 201);
     assert.equal(b.cifra, 'G    D');
-    b = await call(`/musicas/${b.id}`, 'PUT', { ...b, cifra: '', notas: '' });
+    b = await call(`/musicas/${b.id}`, 'PUT', { ...b, cifra: '', notas: '', cifra_fonte: 'https://www.cifraclub.com.br/legiao-urbana/tempo-perdido/' });
     assert.equal(b.cifra, ''); assert.equal(b.notas, '');
+    assert.equal(b.cifra_fonte, 'https://www.cifraclub.com.br/legiao-urbana/tempo-perdido/');
     a = await call(`/musicas/${a.id}`, 'PUT', { titulo: 'Teste editado', artista: 'Banda editada', duracao_segundos: 250 });
     assert.equal(a.duracao_segundos, 250);
     assert.equal((await call('/musicas')).length, 2);
@@ -89,6 +90,8 @@ test('Versão Neon: contrato HTTP e SQL em PostgreSQL/PGlite descartável', asyn
     assert.deepEqual(result.musicas.map(item => item.id), [b.id, a.id]);
     assert.equal(result.duracao_total_segundos, 445);
     assert.equal(result.musicas.find(song => song.id === a.id).letra, 'Texto próprio\nLinha 2');
+    assert.equal(result.musicas.find(song => song.id === b.id).cifra, '');
+    assert.equal(result.musicas.find(song => song.id === b.id).cifra_fonte, b.cifra_fonte);
     const summary = (await call('/setlists')).find(item => item.id === show.id);
     assert.equal(summary.duracao_total_segundos, 445);
     assert.equal(typeof summary.duracao_total_segundos, 'number');

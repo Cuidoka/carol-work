@@ -2,11 +2,12 @@ import { useState } from 'react';
 import Icon from './Icon.jsx';
 import { Button, IconButton } from './Button.jsx';
 import { duration, countSongs } from '../lib/format.mjs';
+import { sourceURL } from '../../lib/music-sources.mjs';
 
 export default function Library({ songs, disabled, onNew, onEdit, onDelete, onRead }) {
   const [query, setQuery] = useState('');
   const [material, setMaterial] = useState('all');
-  const filtered = songs.filter(song => `${song.titulo} ${song.artista}`.toLocaleLowerCase('pt-BR').includes(query.trim().toLocaleLowerCase('pt-BR')) && (material === 'all' || !!song[material]));
+  const filtered = songs.filter(song => `${song.titulo} ${song.artista}`.toLocaleLowerCase('pt-BR').includes(query.trim().toLocaleLowerCase('pt-BR')) && (material === 'all' || !!song[material] || (material === 'cifra' && !!sourceURL(song.cifra_fonte))));
   return <section aria-label="Biblioteca musical" className="overflow-hidden rounded-2xl border border-line bg-white">
     <div className="flex flex-wrap items-center justify-between gap-5 p-5 sm:p-6"><div><h2 className="font-semibold">Todas as músicas <span className="ml-2 text-xs font-normal text-muted">{countSongs(songs.length)}</span></h2><p className="mt-1 text-xs text-muted">Abra uma música para consultar a letra, a cifra e suas notas.</p></div><label className="flex w-full items-center gap-2 rounded-lg border border-line px-3 sm:w-72"><Icon name="search" size={17} className="text-muted" /><input aria-label="Buscar por título ou artista" type="search" value={query} onChange={event => setQuery(event.target.value)} placeholder="Buscar título ou artista" className="min-w-0 flex-1 bg-transparent py-2.5 text-xs outline-none" /></label></div>
     <div className="flex flex-wrap gap-2 border-t border-line px-5 py-3 sm:px-6" aria-label="Filtrar por material">{[['all', 'Todas'], ['letra', 'Com letra'], ['cifra', 'Com cifra']].map(([id, label]) => <button type="button" key={id} aria-pressed={material === id} onClick={() => setMaterial(id)} className={`rounded-full border px-3 py-1.5 text-[11px] transition-colors ${material === id ? 'border-[#bacd95] bg-[#eff5e2] text-[#49612d]' : 'border-line text-muted hover:bg-canvas'}`}>{label}</button>)}</div>

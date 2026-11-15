@@ -497,3 +497,22 @@ Instância em `http://localhost:3012`, banco separado `C:/Users/siltu/AppData/Lo
 - Branch temporário **br-divine-heart-beojj9qj** removido após conferir ID/nome/parent; main e projeto anterior preservados. Servidor local descartável encerrado; abas temporárias fechadas. Nenhuma mudança no SQLite principal.
 
 **Resultado deste ciclo:** cifras prontas podem ser importadas sem redigitar, letras podem ser buscadas e duração pode ser preenchida por três fontes (iTunes/MusicBrainz ou LRCLIB quando vazia). Os requisitos acadêmicos passaram novamente. **Não há API oficial Cifra Club/Letras nem importação automática por URL**; o fluxo exige copiar a cifra ou selecionar arquivo. HTML precisa conter `pre`, em UTF-8; não há PDF/OCR. Catálogos podem não cobrir a faixa, devolver outra gravação ou ficar indisponíveis; o usuário deve revisar. Não foi feito teste de carga, múltiplos navegadores ou usuários simultâneos. O erro inicial de publicação foi corrigido e a validação pública foi refeita com sucesso, sem confundir READY do build com funcionamento da API.
+
+## 2026-11-14 — Abrir cifra diretamente pelo link no ensaio/show
+
+**Pedido:** quando não for possível importar a cifra, salvar o link e abrir a página exata do Cifra Club com um clique durante o ensaio/show.
+
+**Problema comprovado no código:** o input de fonte pertencia ao estado interno de ChartImport. Só era enviado ao editor quando Usar esta cifra confirmava uma importação de texto; preencher apenas a URL e salvar a música perdia o link. No ensaio havia apenas uma referência discreta, condicionada à aba Cifra, e a tela inicial de música sem cifra começava em Letra.
+
+**Alterações:** `ChartImport.jsx` agora recebe o link controlado pelo editor. Campo renomeado para Link da cifra, com instrução explícita de salvar só o link. `EditorDialog.jsx` normaliza/valida e persiste `cifra_fonte` independentemente do conteúdo. Importar texto não limpa o link. `Rehearsal.jsx` oferece botão destacado **Abrir cifra no Cifra Club** (ou fonte correspondente) fora das abas; abre URL salva em nova aba com noopener/noreferrer. Música só com link inicia na aba Cifra e mostra instrução apropriada; importação segue opcional. `Library.jsx` inclui músicas com link válido no filtro Com cifra. Nenhuma mudança de schema/API/dependências; usa o campo existente nos dois bancos.
+
+**Testes realmente executados:**
+
+- `npm run test:all`: build React passou; **23 testes locais + 11 PostgreSQL/PGlite, 0 falhas**. Testes existentes ampliados para fonte com cifra vazia, JOIN e persistência após reiniciar o SQLite. Não foram adicionadas dependências de teste.
+- Navegador em instância descartável na porta 3016, SQLite em memória, sem usar dados reais. Cadastrada música com título/artista/05:02 e apenas URL Cifra Club. Sem importar texto. Após reload, editor mostrou mesma URL e cifra com **0 caracteres**; leitor iniciou em Cifra e ofereceu o botão.
+- Clique real no botão criou nova aba com título **Tempo Perdido - Legião Urbana - Cifra Club** e URL exata `https://www.cifraclub.com.br/legiao-urbana/tempo-perdido/`. SETLIST manteve seu diálogo de ensaio aberto. Aba externa temporária fechada.
+- Filtro Com cifra manteve a música só com link. Formulário rejeitou `javascript:alert(1)` com erro, sem salvar. Importação de texto autoral para o rascunho manteve a URL; cancelamento descartou o texto.
+- Criado repertório de teste pela interface, vinculada a faixa e clicado Iniciar ensaio: botão disponível. Alternar para Letra manteve o botão externo visível.
+- Em viewport 390×844, diálogo clientWidth=scrollWidth=326, sem transbordamento horizontal. Viewport restaurada. Console sem erros/avisos na inspeção final. Captura `setlist-link-direto.jpg` na pasta de visualizações do chat; aba temporária fechada.
+
+**Limites/estado:** abrir página externa depende da conexão e disponibilidade do site; o ensaio do SETLIST permanece aberto. Não foi feito teste offline nem em outros navegadores. Validação local concluída; publicação deste ajuste ainda será confirmada. README e documento 07 atualizados. Não houve acesso de escrita a bancos reais neste ciclo.
