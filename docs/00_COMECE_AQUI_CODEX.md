@@ -4,7 +4,7 @@
 
 ## Estado atual — 14/11/2026
 
-**Extensão de catálogos/importação:** duração por Apple/iTunes ou MusicBrainz, duração LRCLIB quando vazia, e cifras prontas por colagem/TXT/HTML com revisão. Não há download automático por link Cifra Club/Letras; a pesquisa encontrou bloqueio 403 no servidor. Consulte `07_CATALOGOS_E_IMPORTACAO.md` e a última entrada do histórico para validações e estado de publicação deste ciclo.
+**Extensão de catálogos/importação publicada e validada:** duração por Apple/iTunes ou MusicBrainz, duração LRCLIB quando vazia, e cifras prontas por colagem/TXT/HTML com revisão. Não há download automático por link Cifra Club/Letras; a pesquisa encontrou bloqueio 403 no servidor. Build, 34 testes locais/PGlite, smoke Neon real/público e navegador na Vercel passaram. Consulte `07_CATALOGOS_E_IMPORTACAO.md` e a última entrada do histórico para evidências e limites. Dados preexistentes preservados.
 
 **Ferramentas Neon:** CLI 9.5.0 autenticado por GitHub, plugin oficial neon-postgres 3.0.8 com sete skills instalado no Codex. As skills carregaram após reinício; operações de banco executadas pelo CLI. Configurações anteriores preservadas. Vercel CLI 65.16.0 autenticado e vinculado ao projeto existente carol-work. Credenciais ficam somente em arquivos ignorados e no ambiente servidor.
 

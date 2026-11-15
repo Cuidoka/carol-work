@@ -4,6 +4,8 @@
 
 Em 14/11/2026, o usuário pediu cifras prontas, principalmente do Cifra Club, pesquisa de Letras e outras fontes, e duração de catálogo para músicas conhecidas. A entrada manual continua disponível para músicas autorais. Não houve troca de stack nem adição de dependências npm.
 
+**Publicado e validado:** [SETLIST na Vercel](https://carol-work.vercel.app/), com 34 testes de regressão, smoke público e importação/gravação/refresh/ensaio exercitados no navegador. iTunes, MusicBrainz e LRCLIB responderam HTTP 200 pela função publicada. A falha inicial do carregador ESM foi corrigida; detalhes e limites no histórico. Dados do usuário preservados e testes removidos.
+
 | Informação | Método implementado | Revisão |
 |---|---|---|
 | Duração | API pública Apple/iTunes; alternativa MusicBrainz | Escolher a gravação preenche duração e fonte |
