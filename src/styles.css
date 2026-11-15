@@ -62,3 +62,27 @@
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
 }
+
+.print-sheet { display: none; }
+@page { size: A4; margin: 16mm; }
+@media print {
+  html, body { overflow: visible !important; background: white; color: #111; }
+  .app-shell { display: none !important; }
+  .print-sheet { display: block; font: 11pt/1.45 'Segoe UI', Arial, sans-serif; }
+  .print-sheet header { margin-bottom: 8mm; }
+  .print-sheet h1 { font-size: 23pt; line-height: 1.2; margin: 3mm 0; overflow-wrap: anywhere; }
+  .print-sheet p { margin: 2mm 0; overflow-wrap: anywhere; }
+  .print-brand { font-size: 9pt; font-weight: 700; letter-spacing: 2px; }
+  .print-sheet table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+  .print-sheet th { font-size: 9pt; text-align: left; border-bottom: 2px solid #222; padding: 3mm 2mm; }
+  .print-sheet th:first-child { width: 7%; }
+  .print-sheet th:nth-child(2) { width: 54%; }
+  .print-sheet th:nth-child(n+3) { width: 13%; }
+  .print-sheet td { padding: 4mm 2mm; vertical-align: top; border-bottom: 1px solid #ccc; overflow-wrap: anywhere; }
+  .print-sheet thead { display: table-header-group; }
+  .print-sheet tr { break-inside: avoid; }
+  .print-notes { white-space: pre-wrap; font-size: 10pt; }
+  .print-link { font-size: 8pt; }
+  .print-sheet a { color: #111; text-decoration: underline; }
+  .print-sheet footer { margin-top: 6mm; padding-top: 3mm; border-top: 2px solid #222; font-weight: 600; }
+}

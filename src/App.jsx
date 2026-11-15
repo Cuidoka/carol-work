@@ -6,6 +6,8 @@ import EditorDialog from './components/EditorDialog.jsx';
 import Library from './components/Library.jsx';
 import Rehearsal from './components/Rehearsal.jsx';
 import Setlists from './components/Setlists.jsx';
+import BackupDialog from './components/BackupDialog.jsx';
+import PrintSetlist from './components/PrintSetlist.jsx';
 import { useSetlistData } from './hooks/useSetlistData.js';
 import { api } from './lib/api.mjs';
 import { libraryDuration, duration } from './lib/format.mjs';
@@ -22,6 +24,7 @@ export default function App() {
   const [deletion, setDeletion] = useState(null);
   const [deleteError, setDeleteError] = useState('');
   const [toast, setToast] = useState('');
+  const [backupOpen, setBackupOpen] = useState(false);
   const disabled = data.busy || data.loading || data.refreshing || !data.hasLoaded;
   const seconds = data.songs.reduce((sum, song) => sum + song.duracao_segundos, 0);
   useEffect(() => { if (!toast) return; const timer = setTimeout(() => setToast(''), 4500); return () => clearTimeout(timer); }, [toast]);
@@ -39,6 +42,15 @@ export default function App() {
       await data.reload(current.type === 'setlist' ? result.id : undefined);
     });
     setToast(current.type === 'song' ? 'Música salva na biblioteca.' : 'Repertório salvo.');
+  }
+  async function restoreBackup(backup) {
+    await data.mutate(async () => {
+      const result = await api('/backup', 'POST', backup);
+      // Fecha após confirmar a escrita para não repetir importação se a releitura falhar.
+      setBackupOpen(false);
+      setToast(`Backup restaurado: ${result.musicas} músicas e ${result.setlists} repertórios adicionados.`);
+      await data.reload(result.setlist_ids[0]);
+    });
   }
   async function confirmDelete() {
     setDeleteError('');
@@ -63,7 +75,7 @@ export default function App() {
     await change(() => api(`/setlists/${data.selectedId}/ordem`, 'PUT', { musica_ids: ids }), 'Ordem do repertório salva.');
   }
   const navigation = [{ id: 'setlists', label: 'Meus repertórios', icon: 'list', count: data.hasLoaded ? data.setlists.length : '—' }, { id: 'library', label: 'Biblioteca musical', icon: 'music', count: data.hasLoaded ? data.songs.length : '—' }];
-  return <div className="min-h-screen" aria-busy={data.loading || data.busy}>
+  return <><div className="app-shell min-h-screen" aria-busy={data.loading || data.busy}>
     <aside className="flex flex-col bg-forest px-4 py-5 text-[#eef3ec] md:fixed md:inset-y-0 md:left-0 md:w-56 md:px-5 md:py-8 lg:w-60">
       <a href="/" className="flex items-center gap-3 px-1 text-2xl font-extrabold tracking-wide" aria-label="SETLIST, início"><span className="flex size-10 items-center justify-center rounded-xl bg-acid text-forest"><Icon name="wave" size={26} /></span><span>SETLIST<span className="text-acid">.</span></span></a>
       <p className="mb-4 mt-12 hidden px-3 text-[9px] font-semibold tracking-[.18em] text-[#8c9c92] md:block">SEU ESPAÇO MUSICAL</p>
@@ -71,19 +83,20 @@ export default function App() {
       <div className="mx-3 mt-16 hidden border-t border-[#344138] pt-6 md:block"><Icon name="spark" size={32} className="mb-5 text-acid" /><strong className="text-xl font-medium leading-7 tracking-tight">Menos planilha.<br />Mais música.</strong><p className="mt-4 text-xs leading-6 text-[#8e9f93]">Organize as faixas.<br />Encontre a sequência.<br />Prepare o próximo show.</p></div>
       <p className="mt-auto hidden items-center gap-2 px-2 pt-8 text-[9px] text-[#a5b3a9] md:flex"><span className="size-1.5 rounded-full bg-[#87b96f]" />Seu repertório, no seu ritmo.</p>
     </aside>
-    <main className="min-w-0 md:ml-56 lg:ml-60"><header className="flex h-14 items-center justify-between gap-4 border-b border-line bg-[#fafbf8] px-5 text-[11px] text-muted sm:h-18 sm:px-8 lg:px-10"><span>Organizador de repertórios</span><span className="inline-flex items-center gap-2 rounded-full border border-line bg-white px-3 py-1 text-[10px]"><span className="size-1.5 rounded-full bg-[#87b96f]" />Seu espaço musical</span></header>
+    <main className="min-w-0 md:ml-56 lg:ml-60"><header className="flex h-14 items-center justify-between gap-4 border-b border-line bg-[#fafbf8] px-5 text-[11px] text-muted sm:h-18 sm:px-8 lg:px-10"><span>Organizador de repertórios</span><div className="flex items-center gap-3"><Button disabled={disabled} onClick={() => setBackupOpen(true)}>Backup</Button><span className="hidden items-center gap-2 rounded-full border border-line bg-white px-3 py-1 text-[10px] sm:inline-flex"><span className="size-1.5 rounded-full bg-[#87b96f]" />Seu espaço musical</span></div></header>
       <div key={view} className="view-enter mx-auto max-w-[1440px] px-4 py-7 sm:px-8 sm:py-10 lg:px-10"><div className="mb-7 flex flex-wrap items-center justify-between gap-5 sm:mb-8"><div><p className="mb-3 text-[9px] font-bold tracking-[.18em] text-[#74816c]">DO PRIMEIRO AO ÚLTIMO ACORDE</p><h1 className="text-3xl font-semibold tracking-[-1.2px] sm:text-4xl">{view === 'setlists' ? 'Meus repertórios' : 'Biblioteca musical'}</h1><p className="mt-3 text-xs leading-6 text-muted sm:text-sm">{view === 'setlists' ? 'Cada show tem sua sequência. Monte a sua.' : 'Todas as suas faixas. Infinitas possibilidades de repertório.'}</p></div><Button id="primary-action" variant="primary" icon="plus" disabled={disabled} onClick={() => view === 'setlists' ? openSetlist() : openSong()}>{view === 'setlists' ? 'Nova setlist' : 'Nova música'}</Button></div>
         {data.error && <div role="alert" className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-xs text-red-800"><span className="flex items-center gap-2"><Icon name="alert" size={16} />{data.error}</span><Button disabled={data.busy || data.refreshing} onClick={() => data.reload().catch(() => {})}>Tentar novamente</Button></div>}
         <section aria-label="Resumo da biblioteca" className="mb-8 grid grid-cols-3 divide-x divide-line rounded-2xl border border-line bg-white py-5 sm:py-6"><Stat icon="list" label="Repertórios criados" value={!data.hasLoaded ? '—' : String(data.setlists.length).padStart(2, '0')} /><Stat icon="music" label="Músicas na biblioteca" value={!data.hasLoaded ? '—' : String(data.songs.length).padStart(2, '0')} /><Stat icon="clock" label="Duração da biblioteca" title={duration(seconds)} value={!data.hasLoaded ? '—' : libraryDuration(seconds)} /></section>
         {data.loading ? <div role="status" className="rounded-2xl border border-line bg-white p-12 text-center text-muted">Carregando sua biblioteca…</div> : !data.hasLoaded ? <section className="rounded-2xl border border-line bg-white px-6 py-12 text-center"><Icon name="alert" size={28} className="mx-auto mb-4 text-[#8b996e]" /><h2 className="text-lg font-semibold">Sua biblioteca está indisponível</h2><p className="mx-auto mt-3 max-w-sm text-xs leading-6 text-muted">Ainda não foi possível consultar suas músicas e repertórios. Use “Tentar novamente” para carregar os dados.</p></section> : view === 'library'
           ? <Library onRead={song => setRehearsal({ songs: [song], initialId: song.id })} songs={data.songs} disabled={disabled} onNew={() => openSong()} onEdit={openSong} onDelete={item => askDelete('song', item)} />
-          : <Setlists onRehearse={initialId => setRehearsal({ songs: data.detail.musicas, name: data.detail.nome, initialId })} songs={data.songs} setlists={data.setlists} selectedId={data.selectedId} detail={data.detail} disabled={disabled} onSelect={data.selectSetlist} onNew={() => openSetlist()} onNewSong={() => openSong()} onEdit={() => openSetlist(data.detail)} onDelete={() => askDelete('setlist', data.detail)} onAdd={songId => change(() => api(`/setlists/${data.selectedId}/musicas`, 'POST', { musica_id: songId }), 'Música adicionada ao repertório.')} onRemove={songId => change(() => api(`/setlists/${data.selectedId}/musicas/${songId}`, 'DELETE'), 'Música removida do repertório. Mantida na biblioteca.')} onMove={move} />}
+          : <Setlists onPrint={() => window.print()} onRehearse={initialId => setRehearsal({ songs: data.detail.musicas, name: data.detail.nome, initialId })} songs={data.songs} setlists={data.setlists} selectedId={data.selectedId} detail={data.detail} disabled={disabled} onSelect={data.selectSetlist} onNew={() => openSetlist()} onNewSong={() => openSong()} onEdit={() => openSetlist(data.detail)} onDelete={() => askDelete('setlist', data.detail)} onAdd={songId => change(() => api(`/setlists/${data.selectedId}/musicas`, 'POST', { musica_id: songId }), 'Música adicionada ao repertório.')} onRemove={songId => change(() => api(`/setlists/${data.selectedId}/musicas/${songId}`, 'DELETE'), 'Música removida do repertório. Mantida na biblioteca.')} onMove={move} />}
         <footer className="mt-9 flex justify-between gap-4 border-t border-line pt-5 text-[9px] text-[#929b8d]"><span>Feito para deixar a música em ordem.</span><span>SETLIST / 2026</span></footer>
       </div>
     </main>
     {rehearsal && <Rehearsal {...rehearsal} onClose={() => setRehearsal(null)} onEdit={song => { setRehearsal(null); openSong(song); }} />}
     {editor && <EditorDialog editor={editor} busy={data.busy} onClose={() => { if (!data.busy) setEditor(null); }} onSave={save} />}
+    {backupOpen && <BackupDialog busy={data.busy} onClose={() => setBackupOpen(false)} onRestore={restoreBackup} />}
     {deletion && <Dialog title={deletion.type === 'song' ? 'Excluir música?' : 'Excluir repertório?'} busy={data.busy} onClose={() => setDeletion(null)}><span className="mb-4 flex size-11 items-center justify-center rounded-full bg-red-50 text-red-700"><Icon name="trash" size={21} /></span><p className="text-sm leading-7 text-muted">{deletion.type === 'song' ? `“${deletion.item.titulo}” será excluída da biblioteca e de todos os repertórios em que aparece.` : `“${deletion.item.nome}” será excluído. As músicas continuarão na biblioteca.`} Esta ação não pode ser desfeita.</p>{deleteError && <p role="alert" className="mt-4 rounded-lg bg-red-50 p-3 text-xs text-red-800">{deleteError}</p>}<div className="mt-6 flex justify-end gap-2 border-t border-line pt-5"><Button autoFocus onClick={() => setDeletion(null)} disabled={data.busy}>Cancelar</Button><Button variant="danger" onClick={confirmDelete} disabled={data.busy}>{data.busy ? 'Excluindo…' : 'Excluir'}</Button></div></Dialog>}
     <div role="status" aria-live="polite" className="pointer-events-none fixed bottom-5 left-1/2 z-50 w-max max-w-[calc(100%_-_2rem)] -translate-x-1/2">{toast && <div className="toast-enter flex items-center gap-2 rounded-xl border border-[#486843] bg-[#243c2b] px-5 py-3 text-xs text-white shadow-xl"><Icon name="check" size={16} />{toast}</div>}</div>
-  </div>;
+  </div><PrintSetlist detail={data.detail} /></>;
 }

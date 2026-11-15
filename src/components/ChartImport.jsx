@@ -1,13 +1,14 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Button } from './Button.jsx';
 import { importChart } from '../lib/import-song.mjs';
 import { searchLinks, sourceURL } from '../../lib/music-sources.mjs';
 
-export default function ChartImport({ title, artist, hasChart, source, onSourceChange, disabled, onUse }) {
+export default function ChartImport({ title, artist, hasChart, source, onSourceChange, onDraftChange, disabled, onUse }) {
   const [text, setText] = useState('');
   const [preview, setPreview] = useState(null), [error, setError] = useState(''), [reading, setReading] = useState(false);
   const file = useRef(null), sequence = useRef(0);
   const busy = disabled || reading;
+  useEffect(() => { onDraftChange(!!text || !!preview || reading); }, [text, preview, reading, onDraftChange]);
   function review(value = text, html = false) {
     setError(''); setPreview(null);
     try {

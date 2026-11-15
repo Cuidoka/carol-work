@@ -67,6 +67,9 @@ Abra **http://127.0.0.1:5173**. O mesmo processo inicia a API SQLite em 3000 e o
 - Modo de ensaio com navegação pela sequência, fonte ajustável e rolagem opcional.
 - Filtros de músicas com letra/cifra e movimentos discretos com suporte a movimento reduzido.
 - Interface responsiva implementada em componentes React com classes Tailwind.
+- Backup JSON com prévia e restauração aditiva de músicas, material e repertórios.
+- Repertório preparado para impressão ou Salvar como PDF no navegador.
+- Aviso antes de descartar alterações não salvas nos formulários.
 
 Duração pode vir do catálogo ou ser digitada em minutos:segundos para material autoral. É armazenada como inteiro de segundos. Ex.: 04:10 + 03:15 = **07:25**.
 
@@ -85,6 +88,20 @@ Para letras, clique em **Buscar letra**, confira a versão/prévia e escolha **U
 Clique no título de uma música ou em **Iniciar ensaio** no repertório. Alterne letra/cifra, ajuste a fonte, ative/pare a rolagem ou navegue com ←/→. Esses controles só mudam a leitura; não alteram o conteúdo gravado. O material salvo pode ser lido sem consultar o catálogo novamente.
 
 ## Dados e integridade
+
+### Backup e restauração
+
+Clique em **Backup → Baixar backup JSON** para guardar os dados salvos da versão que está aberta. Para recuperar ou transferir entre SQLite e Neon, use **Selecionar backup JSON**, confira as quantidades e clique em **Confirmar restauração**. O arquivo é validado antes de gravar; a restauração é transacional e **adiciona cópias sem apagar ou substituir dados existentes**. Importar novamente cria outras cópias. IDs são recriados, vínculos/ordem/material são preservados e as datas de criação passam a ser as da restauração.
+
+Limites: arquivo JSON até 4 MB, 1.000 músicas, 200 repertórios e 10.000 vínculos. O arquivo contém letras, cifras e notas: guarde-o com cuidado. Alterações ainda no formulário não entram no backup. O JSON é um backup dos dados do aplicativo; não contém credenciais, configuração de hospedagem ou cópia binária do SQLite.
+
+### Impressão e PDF
+
+Selecione um repertório e clique em **Imprimir / PDF**. Na janela do navegador, escolha **Salvar como PDF**. A folha A4 contém nome/evento, sequência, artista, tom, duração, início acumulado, notas e links de cifra. Não baixa nem inclui conteúdo de páginas externas. O arquivo final é salvo pela janela de impressão do navegador; não há geração de PDF no servidor.
+
+### Alterações não salvas
+
+Ao usar Cancelar, fechar ou Escape em um formulário alterado, escolha **Continuar editando** ou **Descartar alterações**. A cifra colada ainda não importada também é considerada rascunho. Sair/recarregar a página registra o aviso padrão do navegador; sua exibição depende do navegador e da interação prévia com a página. Salvar com sucesso encerra o formulário normalmente.
 
 O banco local é criado automaticamente. Na primeira abertura com esta versão, uma migração aditiva adiciona os campos de material e as fontes `letra_fonte`, `cifra_fonte` e `duracao_fonte`, sem recriar tabelas ou mudar IDs/vínculos. Antes de atualizar uma biblioteca importante, pare o servidor e faça uma cópia do SQLite. Apenas um arquivo novo recebe 5 músicas fictícias e 1 setlist com 3 faixas; esvaziar a biblioteca e reiniciar não reinserirá exemplos. Use `SETLIST_SEED=0` antes da primeira execução para começar vazio.
 

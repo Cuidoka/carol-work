@@ -1,6 +1,7 @@
 import material from '../../lib/song-material.cjs';
 import lyrics from '../../lib/lyrics.cjs';
 import catalog from '../../lib/catalog.cjs';
+import backup from '../../lib/backup.cjs';
 
 class HttpError extends Error {
   constructor(status, message) { super(message); this.status = status; }
@@ -18,7 +19,7 @@ function id(value) {
   }
   return Number(value);
 }
-async function readJson(request) {
+async function readJson(request, limit = 262144) {
   if (!request.headers.get('content-type')?.toLowerCase().startsWith('application/json')) {
     throw new HttpError(415, 'Envie os dados como application/json.');
   }
@@ -30,7 +31,7 @@ async function readJson(request) {
       const { done, value } = await reader.read();
       if (done) break;
       size += value.byteLength;
-      if (size > 262144) { await reader.cancel(); throw new HttpError(413, 'Os dados excedem o limite de 256 KB.'); }
+      if (size > limit) { await reader.cancel(); throw new HttpError(413, limit === backup.MAX_BYTES ? 'O backup excede o limite de 4 MB.' : 'Os dados excedem o limite de 256 KB.'); }
       chunks.push(value);
     }
   }
@@ -66,10 +67,13 @@ export function createHandler(client, options = {}) {
       if (route === '/api/letras' && method === 'GET') return json(await searchLyrics(url.searchParams));
       if (route === '/api/catalogo' && method === 'GET') return json(await searchCatalog(url.searchParams));
       if (!route.startsWith('/api/')) throw new HttpError(404, 'Rota não encontrada.');
-      const data = ['POST', 'PUT'].includes(method) ? await readJson(request) : null;
+      const isBackup = ['/api/backup', '/api/backup/validar'].includes(route);
+      const data = ['POST', 'PUT'].includes(method) ? await readJson(request, isBackup ? backup.MAX_BYTES : 262144) : null;
+      const validated = isBackup && method === 'POST' ? await backup.validateBackup(data) : null;
+      if (route === '/api/backup/validar' && method === 'POST') return json(validated.resumo);
       tx = await client.connect();
       const execute = (sql, args = []) => tx.query(sql, args);
-      await execute(method === 'GET' ? 'BEGIN READ ONLY' : 'BEGIN');
+      await execute(method === 'GET' ? route === '/api/backup' ? 'BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY' : 'BEGIN READ ONLY' : 'BEGIN');
       const song = async songId => {
         const result = await execute('SELECT * FROM musicas WHERE id = $1', [songId]);
         if (!result.rows[0]) throw new HttpError(404, 'Música não encontrada.');
@@ -93,6 +97,27 @@ export function createHandler(client, options = {}) {
         await execute('COMMIT');
         return json(result, status);
       };
+      if (route === '/api/backup') {
+        if (method === 'GET') {
+          const songs = (await execute('SELECT * FROM musicas ORDER BY id')).rows;
+          const lists = (await execute('SELECT * FROM setlists ORDER BY id')).rows;
+          const links = (await execute('SELECT * FROM setlist_musicas ORDER BY setlist_id, posicao, id')).rows;
+          return await finish(backup.createBackup(songs, lists, links));
+        }
+        if (method === 'POST') {
+          const songIds = new Map(), listIds = [];
+          for (const song of validated.musicas) {
+            const result = await execute('INSERT INTO musicas (titulo, artista, duracao_segundos, letra, cifra, tom, notas, letra_fonte, cifra_fonte, duracao_fonte) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING id', [song.titulo, song.artista, song.duracao_segundos, ...backup.fields.map(key => song[key])]);
+            songIds.set(song.id, result.rows[0].id);
+          }
+          for (const list of validated.setlists) {
+            const result = await execute('INSERT INTO setlists (nome, evento) VALUES ($1,$2) RETURNING id', [list.nome, list.evento]);
+            const listId = result.rows[0].id; listIds.push(listId);
+            for (const [index, oldId] of list.musica_ids.entries()) await execute('INSERT INTO setlist_musicas (setlist_id, musica_id, posicao) VALUES ($1,$2,$3)', [listId, songIds.get(oldId), index + 1]);
+          }
+          return await finish({ ...validated.resumo, musica_ids: [...songIds.values()], setlist_ids: listIds }, 201);
+        }
+      }
       if (route === '/api/musicas') {
         if (method === 'GET') return await finish((await execute('SELECT * FROM musicas ORDER BY lower(titulo), id')).rows);
         if (method === 'POST') {

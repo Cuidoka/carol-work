@@ -1,4 +1,5 @@
 const paths = {
+  print: 'M6 9V3h12v6M6 17H3V9h18v8h-3M6 14h12v7H6v-7Zm12-2h.01',
   book: 'M12 5c-3-2-7-2-10-1v15c3-1 7-1 10 1 3-2 7-2 10-1V4c-3-1-7-1-10 1Zm0 0v15',
   pause: 'M8 5v14M16 5v14',
   list: 'M8 6h12M8 12h12M8 18h12M3 6h.01M3 12h.01M3 18h.01',

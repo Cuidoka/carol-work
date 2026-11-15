@@ -8,6 +8,7 @@ const { serveStatic } = require('./lib/static.cjs');
 const { materialData, limits } = require('./lib/song-material.cjs');
 const { createLyricsSearch } = require('./lib/lyrics.cjs');
 const { createCatalogSearch } = require('./lib/catalog.cjs');
+const backup = require('./lib/backup.cjs');
 
 class HttpError extends Error {
   constructor(status, message) { super(message); this.status = status; }
@@ -28,7 +29,7 @@ function id(value) {
   return Number(value);
 }
 
-async function readJson(req) {
+async function readJson(req, limit = 262144) {
   if (!req.headers['content-type']?.toLowerCase().startsWith('application/json')) {
     throw new HttpError(415, 'Envie os dados como application/json.');
   }
@@ -36,9 +37,9 @@ async function readJson(req) {
   const chunks = [];
   for await (const chunk of req) {
     size += chunk.length;
-    if (size <= 262144) chunks.push(chunk);
+    if (size <= limit) chunks.push(chunk);
   }
-  if (size > 262144) throw new HttpError(413, 'Os dados enviados excedem o limite de 256 KB.');
+  if (size > limit) throw new HttpError(413, limit === backup.MAX_BYTES ? 'O backup excede o limite de 4 MB.' : 'Os dados enviados excedem o limite de 256 KB.');
   try {
     const data = JSON.parse(Buffer.concat(chunks).toString('utf8'));
     if (!data || typeof data !== 'object' || Array.isArray(data)) throw new Error();
@@ -129,6 +130,27 @@ function createApp(options = {}) {
       const method = req.method;
       if (route === '/api/letras' && method === 'GET') return json(res, 200, await searchLyrics(url.searchParams));
       if (route === '/api/catalogo' && method === 'GET') return json(res, 200, await searchCatalog(url.searchParams));
+      if (route === '/api/backup' && method === 'GET') {
+        const result = transaction(() => backup.createBackup(db.prepare('SELECT * FROM musicas ORDER BY id').all(),
+          db.prepare('SELECT * FROM setlists ORDER BY id').all(), db.prepare('SELECT * FROM setlist_musicas ORDER BY setlist_id, posicao, id').all()));
+        return json(res, 200, result);
+      }
+      if (['/api/backup', '/api/backup/validar'].includes(route) && method === 'POST') {
+        const validated = await backup.validateBackup(await readJson(req, backup.MAX_BYTES));
+        if (route.endsWith('/validar')) return json(res, 200, validated.resumo);
+        const result = transaction(() => {
+          const songIds = new Map(), listIds = [];
+          const insertSong = db.prepare('INSERT INTO musicas (titulo, artista, duracao_segundos, letra, cifra, tom, notas, letra_fonte, cifra_fonte, duracao_fonte) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+          for (const song of validated.musicas) songIds.set(song.id, Number(insertSong.run(song.titulo, song.artista, song.duracao_segundos, ...backup.fields.map(key => song[key])).lastInsertRowid));
+          for (const list of validated.setlists) {
+            const listId = Number(db.prepare('INSERT INTO setlists (nome, evento) VALUES (?, ?)').run(list.nome, list.evento).lastInsertRowid);
+            listIds.push(listId);
+            list.musica_ids.forEach((oldId, index) => db.prepare('INSERT INTO setlist_musicas (setlist_id, musica_id, posicao) VALUES (?, ?, ?)').run(listId, songIds.get(oldId), index + 1));
+          }
+          return { ...validated.resumo, musica_ids: [...songIds.values()], setlist_ids: listIds };
+        });
+        return json(res, 201, result);
+      }
       if (route === '/api/musicas') {
         if (method === 'GET') return json(res, 200, db.prepare('SELECT * FROM musicas ORDER BY titulo COLLATE NOCASE, id').all());
         if (method === 'POST') {
