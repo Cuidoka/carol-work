@@ -130,7 +130,7 @@ Com o build já feito, os comandos diretos equivalentes são:
 
 ```powershell
 node --test
-node --test vercel/checks/integration.mjs
+node --test vercel/checks/integration.mjs vercel/checks/backup.mjs
 node vercel/scripts/check.mjs
 ```
 

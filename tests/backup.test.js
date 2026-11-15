@@ -41,4 +41,7 @@ test('Backup não exporta campos arbitrários nem permite arquivo maior que o li
   const song = { id: 1, titulo: 'Teste', artista: 'Banda', duracao_segundos: 200, secreto: 'não exportar' };
   assert.equal(createBackup([song], [], []).musicas[0].secreto, undefined);
   assert.throws(() => createBackup([{ ...song, letra: 'x'.repeat(MAX_BYTES) }], [], []), { status: 413 });
+  assert.throws(() => createBackup(Array(1001).fill(song), [], []), { status: 413 });
+  assert.throws(() => createBackup([], Array(201).fill({}), []), { status: 413 });
+  assert.throws(() => createBackup([], [], Array(10001).fill({})), { status: 413 });
 });

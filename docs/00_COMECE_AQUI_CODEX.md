@@ -4,7 +4,7 @@
 
 ## Estado atual — 14/11/2026
 
-**Extensão de 15/11/2026:** backup/restauração aditiva, repertório para impressão/PDF e confirmação de alterações não salvas. Consulte `08_BACKUP_IMPRESSAO_E_RASCUNHOS.md` e última entrada do histórico para estado de publicação e limitações da verificação da janela de impressão. Não presumir que o salvamento nativo do PDF foi testado.
+**Extensão de 15/11/2026 publicada:** backup/restauração aditiva, repertório para impressão/PDF e confirmação de alterações não salvas. Build e 37 testes passaram; backup foi restaurado entre SQLite e PostgreSQL/PGlite, e as rotas foram conferidas na Vercel/Neon real com preservação dos dados anteriores. Consulte `08_BACKUP_IMPRESSAO_E_RASCUNHOS.md` e última entrada do histórico. **Salvamento nativo do PDF e aviso nativo de recarregamento não foram testados**, devido à interrupção da automação do navegador; não antecipar essa aprovação.
 
 **Extensão de catálogos/importação publicada e validada:** duração por Apple/iTunes ou MusicBrainz, duração LRCLIB quando vazia, e cifras prontas por colagem/TXT/HTML com revisão. Não há download automático por link Cifra Club/Letras; a pesquisa encontrou bloqueio 403 no servidor. Build, 34 testes locais/PGlite, smoke Neon real/público e navegador na Vercel passaram. Consulte `07_CATALOGOS_E_IMPORTACAO.md` e a última entrada do histórico para evidências e limites. Dados preexistentes preservados.
 

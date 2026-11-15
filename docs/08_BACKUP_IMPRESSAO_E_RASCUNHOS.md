@@ -28,4 +28,6 @@ beforeunload só fica registrado enquanto houver edição pendente. O navegador 
 
 ## Verificação
 
+Build e **37 testes** (25 locais, 12 PostgreSQL/PGlite) aprovados, incluindo rollback intencional e rejeição de arquivos inválidos. Navegador local confirmou prévia, restauração preservando destino, download real de JSON e aviso ao Cancelar/Escape com preservação da edição. O JSON baixado do SQLite foi restaurado em PostgreSQL/PGlite. API pública Vercel/Neon confirmou exportação, prévia sem escrita, rejeição sem escrita, material/ordem/N:N e limpeza dos próprios IDs, preservando registros anteriores. A implementação está publicada; os limites do teste da janela nativa abaixo continuam válidos.
+
 Resultados, evidências de interface e publicação no histórico. A automação da janela nativa do navegador foi interrompida por verificação de segurança da URL. **O arquivo PDF final salvo pela janela de impressão e o aviso nativo de recarregamento não foram executados/validados nesta sessão.** A estrutura da folha foi renderizada em SSR com dados reais da API descartável, mas isso não substitui conferir o PDF salvo num navegador comum.
