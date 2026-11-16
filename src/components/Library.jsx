@@ -1,17 +1,35 @@
-import { useState } from 'react';
+import { useDeferredValue, useState } from 'react';
 import Icon from './Icon.jsx';
-import { Button, IconButton } from './Button.jsx';
+import { Button } from './Button.jsx';
+import ActionMenu from './ActionMenu.jsx';
+import { useListMotion } from '../hooks/useListMotion.js';
 import { duration, countSongs } from '../lib/format.mjs';
 import { sourceURL } from '../../lib/music-sources.mjs';
 
+function materialLabel(song) {
+  if (song.cifra && song.letra) return 'Cifra + letra';
+  if (song.cifra) return 'Cifra';
+  if (sourceURL(song.cifra_fonte)) return song.letra ? 'Letra + link ↗' : 'Link da cifra ↗';
+  return song.letra ? 'Letra' : 'Sem material';
+}
+
 export default function Library({ songs, disabled, onNew, onEdit, onDelete, onRead }) {
-  const [query, setQuery] = useState('');
-  const [material, setMaterial] = useState('all');
-  const filtered = songs.filter(song => `${song.titulo} ${song.artista}`.toLocaleLowerCase('pt-BR').includes(query.trim().toLocaleLowerCase('pt-BR')) && (material === 'all' || !!song[material] || (material === 'cifra' && !!sourceURL(song.cifra_fonte))));
-  return <section aria-label="Biblioteca musical" className="overflow-hidden rounded-2xl border border-line bg-white">
-    <div className="flex flex-wrap items-center justify-between gap-5 p-5 sm:p-6"><div><h2 className="font-semibold">Todas as músicas <span className="ml-2 text-xs font-normal text-muted">{countSongs(songs.length)}</span></h2><p className="mt-1 text-xs text-muted">Abra uma música para consultar a letra, a cifra e suas notas.</p></div><label className="flex w-full items-center gap-2 rounded-lg border border-line px-3 sm:w-72"><Icon name="search" size={17} className="text-muted" /><input aria-label="Buscar por título ou artista" type="search" value={query} onChange={event => setQuery(event.target.value)} placeholder="Buscar título ou artista" className="min-w-0 flex-1 bg-transparent py-2.5 text-xs outline-none" /></label></div>
-    <div className="flex flex-wrap gap-2 border-t border-line px-5 py-3 sm:px-6" aria-label="Filtrar por material">{[['all', 'Todas'], ['letra', 'Com letra'], ['cifra', 'Com cifra']].map(([id, label]) => <button type="button" key={id} aria-pressed={material === id} onClick={() => setMaterial(id)} className={`rounded-full border px-3 py-1.5 text-[11px] transition-colors ${material === id ? 'border-[#bacd95] bg-[#eff5e2] text-[#49612d]' : 'border-line text-muted hover:bg-canvas'}`}>{label}</button>)}</div>
-    {filtered.length ? <div className="overflow-x-auto"><table className="w-full table-fixed border-collapse text-left text-xs"><caption className="sr-only">Músicas cadastradas na biblioteca</caption><thead className="border-y border-line bg-[#fafbf7] text-[9px] font-medium tracking-wider text-muted"><tr><th scope="col" className="w-[40%] px-3 py-3 font-medium sm:px-6">MÚSICA</th><th scope="col" className="w-[25%] px-2 py-3 font-medium">ARTISTA / BANDA</th><th scope="col" className="w-[15%] px-2 py-3 font-medium">DURAÇÃO</th><th scope="col" className="w-[20%] px-3 py-3 text-right font-medium sm:px-6">AÇÕES</th></tr></thead><tbody>{filtered.map(song => <tr key={song.id} className="track-row border-b border-line/70 last:border-0 hover:bg-[#fbfcf8]"><td className="break-words px-3 py-4 sm:px-6"><div className="flex items-center gap-3"><span className="hidden size-9 shrink-0 items-center justify-center rounded-lg bg-[#f0f4e8] text-[#78925d] sm:flex"><Icon name="music" size={17} /></span><div className="min-w-0"><button type="button" disabled={disabled} onClick={() => onRead(song)} aria-label={`Abrir ${song.titulo} para ensaio`} className="break-words text-left font-semibold underline-offset-4 hover:text-[#58752e] hover:underline">{song.titulo}</button><div className="mt-1.5 flex flex-wrap gap-1">{song.cifra && <span className="material-tag">Cifra</span>}{song.letra && <span className="material-tag">Letra</span>}{song.tom && <span className="material-tag">{song.tom}</span>}</div></div></div></td><td className="break-words px-2 py-4 text-muted">{song.artista}</td><td className="px-2 py-4 text-muted tabular-nums">{duration(song.duracao_segundos)}</td><td className="px-2 py-4 sm:px-6"><div className="flex justify-end"><IconButton icon="edit" label={`Editar ${song.titulo}`} onClick={() => onEdit(song)} disabled={disabled} /><IconButton icon="trash" label={`Excluir ${song.titulo}`} onClick={() => onDelete(song)} disabled={disabled} danger /></div></td></tr>)}</tbody></table></div>
-      : <div className="flex min-h-64 flex-col items-center justify-center px-6 py-12 text-center"><span className="mb-4 flex size-14 items-center justify-center rounded-2xl bg-[#f0f5e5] text-[#829b58]"><Icon name="music" size={26} /></span><h3 className="text-lg font-semibold">{query || material !== 'all' ? 'Nenhuma música encontrada' : 'Sua próxima faixa começa aqui'}</h3><p className="mt-2 max-w-xs text-xs leading-6 text-muted">{query || material !== 'all' ? 'Tente outro título, artista ou filtro de material.' : 'Cadastre músicas para usá-las em quantos repertórios quiser.'}</p>{!query && material === 'all' && <Button className="mt-5" icon="plus" variant="primary" onClick={onNew} disabled={disabled}>Nova música</Button>}</div>}
+  const [query, setQuery] = useState(''), [material, setMaterial] = useState('all');
+  const deferredQuery = useDeferredValue(query);
+  const filtered = songs.filter(song => `${song.titulo} ${song.artista}`.toLocaleLowerCase('pt-BR').includes(deferredQuery.trim().toLocaleLowerCase('pt-BR')) && (material === 'all' || !!song[material] || (material === 'cifra' && !!sourceURL(song.cifra_fonte))));
+  const rows = useListMotion(filtered.map(song => song.id));
+  return <section aria-label="Biblioteca musical" className="library-page">
+    <div className="page-heading"><div><h1>Biblioteca</h1><p>{countSongs(songs.length)} disponíveis para seus repertórios.</p></div><Button id="primary-action" variant="primary" icon="plus" disabled={disabled} onClick={onNew}>Nova música</Button></div>
+    <div className="library-toolbar"><label className="search-field"><Icon name="search" size={17} /><input aria-label="Buscar por título ou artista" type="search" value={query} onChange={event => setQuery(event.target.value)} placeholder="Buscar música ou artista" /></label><div className="line-tabs" aria-label="Filtrar por material">{[['all', 'Todas'], ['letra', 'Com letra'], ['cifra', 'Com cifra']].map(([id, label]) => <button type="button" key={id} aria-pressed={material === id} onClick={() => setMaterial(id)}>{label}</button>)}</div></div>
+    {filtered.length ? <table className="library-table" aria-busy={query !== deferredQuery}>
+      <caption className="sr-only">Músicas cadastradas na biblioteca</caption><colgroup><col className="col-song" /><col className="col-artist" /><col className="col-key" /><col className="col-material" /><col className="col-duration" /><col className="col-actions" /></colgroup>
+      <thead><tr><th scope="col">Música</th><th scope="col" className="library-artist">Artista</th><th scope="col" className="library-key">Tom</th><th scope="col" className="library-material">Material</th><th scope="col" className="align-end">Duração</th><th scope="col"><span className="sr-only">Ações</span></th></tr></thead>
+      <tbody ref={rows}>{filtered.map(song => <tr key={song.id} data-motion-id={song.id} className="library-row">
+        <td><div className="song-title"><button type="button" disabled={disabled} onClick={() => onRead(song)} aria-label={`Abrir ${song.titulo} para ensaio`}>{song.titulo}</button><span className="library-mobile-info">{song.artista}{song.tom ? ` · ${song.tom}` : ''}</span><span className="library-mobile-material">{materialLabel(song)}</span></div></td>
+        <td className="library-artist">{song.artista}</td><td className="library-key mono">{song.tom || '—'}</td><td className="library-material">{materialLabel(song)}</td><td className="track-time">{duration(song.duracao_segundos)}</td>
+        <td><ActionMenu label={`Ações de ${song.titulo}`} disabled={disabled} actions={[{ label: 'Editar música', icon: 'edit', onClick: () => onEdit(song) }, { label: 'Excluir música', icon: 'trash', danger: true, onClick: () => onDelete(song) }]} /></td>
+      </tr>)}</tbody>
+    </table> : <div className="empty-state"><h2>{query || material !== 'all' ? 'Nenhuma música encontrada' : 'Sua biblioteca está vazia'}</h2><p>{query || material !== 'all' ? 'Tente outro título, artista ou filtro de material.' : 'Cadastre uma música para começar a montar seus repertórios.'}</p>{!query && material === 'all' && <Button icon="plus" variant="primary" onClick={onNew} disabled={disabled}>Cadastrar primeira música</Button>}</div>}
+    <div className="table-footer" aria-live="polite"><span>{query || material !== 'all' ? `${countSongs(filtered.length)} encontradas` : 'Títulos abrem o modo de ensaio.'}</span><span>Biblioteca musical</span></div>
   </section>;
 }

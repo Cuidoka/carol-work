@@ -21,7 +21,7 @@ export default function CatalogSearch({ title, artist, disabled, onUse }) {
     } catch (error) { if (request === sequence.current) setError(error.message); }
     finally { if (request === sequence.current) setLoading(false); }
   }
-  return <div className="rounded-xl border border-line bg-canvas p-4">
+  return <div className="import-tool">
     <h3 className="text-xs font-semibold">Duração do catálogo</h3>
     <p className="mt-1 text-[11px] leading-5 text-muted">Informe título e artista acima. Escolha a gravação para preencher a duração automaticamente.</p>
     <div className="mt-3 flex flex-wrap gap-2"><label className="min-w-0 flex-1 text-[11px] text-muted">Catálogo<select className="field mt-1" value={provider} disabled={disabled || loading} onChange={event => setProvider(event.target.value)}><option value="itunes">Apple Music / iTunes</option><option value="musicbrainz">MusicBrainz</option></select></label><Button className="self-end" icon="search" onClick={search} disabled={disabled || loading || !title.trim() || !artist.trim()}>{loading ? 'Buscando…' : 'Buscar duração'}</Button></div>

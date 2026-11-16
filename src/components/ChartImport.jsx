@@ -33,12 +33,12 @@ export default function ChartImport({ title, artist, hasChart, source, onSourceC
     } catch (error) { if (request === sequence.current) setError(error.message); }
     finally { if (request === sequence.current) setReading(false); }
   }
-  return <div className="rounded-xl border border-[#dce6cd] bg-[#f7faef] p-4">
-    <h3 className="text-xs font-semibold">Importar cifra pronta</h3>
+  return <div>
+    <label className="field-label">Link da cifra (opcional)<input className="field mt-2 font-normal" type="url" name="cifra_fonte" aria-describedby="chart-link-help" maxLength={500} disabled={busy} value={source} placeholder="https://www.cifraclub.com.br/artista/musica/" onChange={event => { onSourceChange(event.target.value); setPreview(null); setError(''); }} /></label><p id="chart-link-help" className="mb-4 mt-2 text-[11px] leading-5 text-muted">Salve só o link para abrir a página durante o ensaio, mesmo sem importar a cifra.</p>
+    <details className="tool-disclosure"><summary>Buscar ou importar cifra pronta</summary><div className="import-tool">
     <p className="mt-1 text-[11px] leading-5 text-muted">Salve só o link para abrir a cifra durante o ensaio ou importe o conteúdo por colagem, TXT ou HTML.</p>
     <div className="my-3 flex flex-wrap gap-2">{searchLinks(title, artist).map(link => <a key={link.name} className="rounded-lg border border-line bg-white px-3 py-2 text-[11px] font-semibold underline-offset-4 hover:underline" href={link.url} target="_blank" rel="noreferrer">Buscar no {link.name} ↗</a>)}</div>
     <p className="mb-3 text-[10px] leading-5 text-muted">A busca abre o site da fonte. O link sozinho não baixa a cifra: copie o material desejado ou selecione um arquivo para importar.</p>
-    <label className="field-label">Link da cifra (opcional)<input className="field mt-2 font-normal" type="url" name="cifra_fonte" aria-describedby="chart-link-help" maxLength={500} disabled={busy} value={source} placeholder="https://www.cifraclub.com.br/artista/musica/" onChange={event => { onSourceChange(event.target.value); setPreview(null); setError(''); }} /></label><p id="chart-link-help" className="mb-3 mt-2 text-[11px] leading-5 text-muted">Basta salvar a música com este link. No ensaio, você poderá abrir a página mesmo sem importar a cifra.</p>
     <label className="field-label">Cifra copiada<textarea className="field mt-2 font-mono text-xs" rows={4} value={text} disabled={busy} maxLength={20000} placeholder="Cole aqui a cifra pronta do site…" onChange={event => { sequence.current++; setText(event.target.value); setPreview(null); setError(''); }} onPaste={event => {
       const html = event.clipboardData.getData('text/html');
       if (html && /<pre[\s>]/i.test(html)) { event.preventDefault(); review(html, true); }
@@ -46,5 +46,7 @@ export default function ChartImport({ title, artist, hasChart, source, onSourceC
     <div className="mt-3 flex flex-wrap gap-2"><Button disabled={busy} onClick={() => review()}>Revisar cifra colada</Button><Button disabled={busy} onClick={() => file.current?.click()}>{reading ? 'Lendo…' : 'Importar arquivo TXT/HTML'}</Button><input ref={file} aria-label="Arquivo da cifra" type="file" accept=".txt,.html,.htm,text/plain,text/html" hidden onChange={load} /></div>
     {error && <p role="alert" className="mt-3 text-xs text-red-800">{error}</p>}
     {preview && <div className="mt-4 border-t border-line pt-3"><h4 className="text-[11px] font-semibold">Prévia da cifra pronta{preview.titulo ? ` · ${preview.titulo}` : ''}</h4><pre className="mt-2 max-h-48 overflow-auto rounded-lg bg-white p-3 font-mono text-xs leading-6">{preview.cifra}</pre><p className="my-2 text-[10px] text-muted">{preview.cifra.length.toLocaleString('pt-BR')} caracteres. Só será gravada ao salvar a música.</p><Button disabled={busy} icon="check" onClick={() => { onUse(preview); setPreview(null); setText(''); }}>{hasChart ? 'Substituir pela cifra importada' : 'Usar esta cifra'}</Button></div>}
+    </div></details>
+    {!preview && error && <p role="alert" className="mt-3 text-xs text-danger">Abra as opções de importação para revisar o erro.</p>}
   </div>;
 }
