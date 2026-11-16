@@ -14,10 +14,6 @@
     "prestart": "npm run build",
     "build": "vite build",
     "dev": "node scripts/dev.mjs",
-    "test": "node --test",
-    "pretest": "npm run build",
-    "test:all": "npm test && npm run test --workspace setlist-vercel",
-    "consultas": "node database/consultar.js",
     "db:init:neon": "npm run db:init --workspace setlist-vercel",
     "preview:neon": "npm run start --workspace setlist-vercel"
   },

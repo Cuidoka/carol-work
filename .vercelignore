@@ -10,3 +10,10 @@ docs
 vercel/checks
 node_modules
 *.sqlite*
+**/AGENTS.md
+*.md
+database/consultar.js
+database/consultas.sql
+vercel/database/consultas.sql
+vercel/scripts/check.mjs
+vercel/scripts/smoke.mjs

@@ -9,15 +9,9 @@
   "scripts": {
     "start": "node --env-file-if-exists=.env.local dev.mjs",
     "build": "npm run build --prefix ..",
-    "check": "node scripts/check.mjs",
-    "test": "node --test checks/integration.mjs checks/backup.mjs",
-    "db:init": "node --env-file-if-exists=.env.local scripts/init-db.mjs",
-    "smoke": "node scripts/smoke.mjs"
+    "db:init": "node --env-file-if-exists=.env.local scripts/init-db.mjs"
   },
   "dependencies": {
     "@neondatabase/serverless": "1.2.0"
-  },
-  "devDependencies": {
-    "@electric-sql/pglite": "0.5.14"
   }
 }

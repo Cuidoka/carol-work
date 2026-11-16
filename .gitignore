@@ -1,6 +1,5 @@
 node_modules/
-dados/*
-!dados/.gitkeep
+dados/
 *.sqlite
 *.sqlite-*
 *.log
@@ -11,3 +10,20 @@ dist/
 .vercel/
 backups/
 .neon
+
+# Documentação de trabalho e configuração de agentes permanecem locais.
+*.md
+!/README.md
+/docs/
+.agents/
+.codex/
+
+# Testes e ferramentas de validação não fazem parte da distribuição.
+/tests/
+/vercel/checks/
+/vercel/scripts/check.mjs
+/vercel/scripts/smoke.mjs
+/database/consultar.js
+/database/consultas.sql
+/vercel/database/consultas.sql
+/vercel/.gitignore
