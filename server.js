@@ -8,6 +8,7 @@ const { serveStatic } = require('./lib/static.cjs');
 const { materialData, limits } = require('./lib/song-material.cjs');
 const { createLyricsSearch } = require('./lib/lyrics.cjs');
 const { createCatalogSearch } = require('./lib/catalog.cjs');
+const { createChartSearch } = require('./lib/cifraclub.cjs');
 const backup = require('./lib/backup.cjs');
 
 class HttpError extends Error {
@@ -65,6 +66,7 @@ function createApp(options = {}) {
   } catch (error) { db.exec('ROLLBACK'); db.close(); throw error; }
   const searchLyrics = createLyricsSearch(options.lyricsFetch);
   const searchCatalog = createCatalogSearch(options.catalogFetch);
+  const searchCharts = createChartSearch(options.chartFetch);
 
   function transaction(action) {
     db.exec('BEGIN');
@@ -130,6 +132,7 @@ function createApp(options = {}) {
       const method = req.method;
       if (route === '/api/letras' && method === 'GET') return json(res, 200, await searchLyrics(url.searchParams));
       if (route === '/api/catalogo' && method === 'GET') return json(res, 200, await searchCatalog(url.searchParams));
+      if (route === '/api/cifras' && method === 'GET') return json(res, 200, await searchCharts(url.searchParams));
       if (route === '/api/backup' && method === 'GET') {
         const result = transaction(() => backup.createBackup(db.prepare('SELECT * FROM musicas ORDER BY id').all(),
           db.prepare('SELECT * FROM setlists ORDER BY id').all(), db.prepare('SELECT * FROM setlist_musicas ORDER BY setlist_id, posicao, id').all()));

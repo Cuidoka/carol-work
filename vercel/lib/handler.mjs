@@ -1,6 +1,7 @@
 import material from '../../lib/song-material.cjs';
 import lyrics from '../../lib/lyrics.cjs';
 import catalog from '../../lib/catalog.cjs';
+import charts from '../../lib/cifraclub.cjs';
 import backup from '../../lib/backup.cjs';
 
 class HttpError extends Error {
@@ -53,11 +54,13 @@ const json = (data, status = 200) => Response.json(data, {
 });
 const defaultSearch = lyrics.createLyricsSearch();
 const defaultCatalog = catalog.createCatalogSearch();
+const defaultCharts = charts.createChartSearch();
 
 // Um cliente/uma transação lógica por requisição. Nenhum estado de dados em memória.
 export function createHandler(client, options = {}) {
   const searchLyrics = options.lyricsFetch ? lyrics.createLyricsSearch(options.lyricsFetch) : defaultSearch;
   const searchCatalog = options.catalogFetch ? catalog.createCatalogSearch(options.catalogFetch) : defaultCatalog;
+  const searchCharts = options.chartFetch ? charts.createChartSearch(options.chartFetch) : defaultCharts;
   return async request => {
     let tx;
     try {
@@ -66,6 +69,7 @@ export function createHandler(client, options = {}) {
       const method = request.method;
       if (route === '/api/letras' && method === 'GET') return json(await searchLyrics(url.searchParams));
       if (route === '/api/catalogo' && method === 'GET') return json(await searchCatalog(url.searchParams));
+      if (route === '/api/cifras' && method === 'GET') return json(await searchCharts(url.searchParams));
       if (!route.startsWith('/api/')) throw new HttpError(404, 'Rota não encontrada.');
       const isBackup = ['/api/backup', '/api/backup/validar'].includes(route);
       const data = ['POST', 'PUT'].includes(method) ? await readJson(request, isBackup ? backup.MAX_BYTES : 262144) : null;

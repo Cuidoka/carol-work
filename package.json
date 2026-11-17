@@ -13,6 +13,7 @@
     "start": "node server.js",
     "prestart": "npm run build",
     "build": "vite build",
+    "test": "node --test tests/*.test.cjs",
     "dev": "node scripts/dev.mjs",
     "db:init:neon": "npm run db:init --workspace setlist-vercel",
     "preview:neon": "npm run start --workspace setlist-vercel"

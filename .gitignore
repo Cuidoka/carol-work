@@ -14,12 +14,14 @@ backups/
 # Documentação de trabalho e configuração de agentes permanecem locais.
 *.md
 !/README.md
+!/CHANGELOG.md
 /docs/
 .agents/
 .codex/
 
-# Testes e ferramentas de validação não fazem parte da distribuição.
-/tests/
+# Testes desta integração são versionados; outras ferramentas de validação permanecem locais.
+/tests/*
+!/tests/cifraclub.test.cjs
 /vercel/checks/
 /vercel/scripts/check.mjs
 /vercel/scripts/smoke.mjs

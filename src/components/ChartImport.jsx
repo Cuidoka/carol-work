@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Button } from './Button.jsx';
 import { importChart } from '../lib/import-song.mjs';
 import { searchLinks, sourceURL } from '../../lib/music-sources.mjs';
+import ChartSearch from './ChartSearch.jsx';
 
 export default function ChartImport({ title, artist, hasChart, source, onSourceChange, onDraftChange, disabled, onUse }) {
   const [text, setText] = useState('');
@@ -35,6 +36,7 @@ export default function ChartImport({ title, artist, hasChart, source, onSourceC
   }
   return <div>
     <label className="field-label">Link da cifra (opcional)<input className="field mt-2 font-normal" type="url" name="cifra_fonte" aria-describedby="chart-link-help" maxLength={500} disabled={busy} value={source} placeholder="https://www.cifraclub.com.br/artista/musica/" onChange={event => { onSourceChange(event.target.value); setPreview(null); setError(''); }} /></label><p id="chart-link-help" className="mb-4 mt-2 text-[11px] leading-5 text-muted">Salve só o link para abrir a página durante o ensaio, mesmo sem importar a cifra.</p>
+    <ChartSearch title={title} artist={artist} disabled={busy} onUse={record => { onSourceChange(record.fonte); setPreview(null); setError(''); }} />
     <details className="tool-disclosure"><summary>Buscar ou importar cifra pronta</summary><div className="import-tool">
     <p className="mt-1 text-[11px] leading-5 text-muted">Salve só o link para abrir a cifra durante o ensaio ou importe o conteúdo por colagem, TXT ou HTML.</p>
     <div className="my-3 flex flex-wrap gap-2">{searchLinks(title, artist).map(link => <a key={link.name} className="rounded-lg border border-line bg-white px-3 py-2 text-[11px] font-semibold underline-offset-4 hover:underline" href={link.url} target="_blank" rel="noreferrer">Buscar no {link.name} ↗</a>)}</div>
